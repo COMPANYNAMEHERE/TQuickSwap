@@ -1,40 +1,40 @@
-# gradle
-
+# Gradle
 .gradle/
 build/
 out/
 classes/
 
-# eclipse
+# Loom/Fabric run dirs
+run/
+.loomcache/
 
-*.launch
-
-# idea
-
+# IDEs
 .idea/
 *.iml
-*.ipr
-*.iws
-
-# vscode
-
-.settings/
+.ipr
+.iws
 .vscode/
-bin/
-.classpath
 .project
+.classpath
+.settings/
 
-# macos
+# OS
+.DS_Store
+Thumbs.db
 
-*.DS_Store
+# Logs and crash reports
+logs/
+crash-reports/
+hs_err_pid*.log
+replay_recordings/
 
-# fabric
+# Local env/config
+*.local.properties
+.env
+.env.*
 
-run/
-
-# java
-
-hs_err_*.log
-replay_*.log
-*.hprof
-*.jfr
+# Jars produced locally (keep wrapper jar tracked)
+!gradle/wrapper/gradle-wrapper.jar
+libs/
+*.jar
+*.log
