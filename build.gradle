@@ -4,8 +4,8 @@ plugins {
     id 'maven-publish'
 }
 
-group = 'dev.zorg'
-version = '0.1.0'
+group = 'dev.tetralights'
+version = '1.1.1'
 
 repositories {
     maven { url = 'https://maven.fabricmc.net/' }
@@ -22,6 +22,7 @@ dependencies {
     mappings loom.officialMojangMappings()
     modImplementation 'net.fabricmc:fabric-loader:0.16.13'
     modImplementation 'net.fabricmc.fabric-api:fabric-api:0.133.4+1.21.8'
+
 }
 
 java {

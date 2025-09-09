@@ -1,4 +1,4 @@
-package dev.zorg.schizoswap;
+package dev.tetralights.tquickswap;
 
 
 import com.mojang.brigadier.arguments.StringArgumentType;
@@ -14,7 +14,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.GameType;
 
 
-public class SchizoSwapMod implements ModInitializer {
+public class TQuickSwapMod implements ModInitializer {
     @Override public void onInitialize() {
         // Command: /swap [survival|creative]
         CommandRegistrationCallback.EVENT.register((dispatcher, reg, env) -> dispatcher.register(
@@ -27,15 +27,40 @@ public class SchizoSwapMod implements ModInitializer {
                     ctx.getSource().sendSuccess(() -> Component.literal("Switched to " + target), true);
                     return 1;
                 })
+                .then(Commands.literal("status").executes(ctx -> {
+                    ServerPlayer p = ctx.getSource().getPlayerOrException();
+                    var server = ctx.getSource().getServer();
+                    DualStore store = DualStore.of(server);
+                    ProfileType current = p.isCreative() ? ProfileType.CREATIVE : ProfileType.SURVIVAL;
+                    var surv = store.lastModified(p.getUUID(), ProfileType.SURVIVAL).map(TQuickSwapMod::fmtInstant).orElse("never");
+                    var creat = store.lastModified(p.getUUID(), ProfileType.CREATIVE).map(TQuickSwapMod::fmtInstant).orElse("never");
+                    ctx.getSource().sendSuccess(() -> title("TQuickSwap Status"), false);
+                    ctx.getSource().sendSuccess(() -> line("Current: ", current.name(), "", "", ChatFormatting.AQUA), false);
+                    ctx.getSource().sendSuccess(() -> line("Saved (Survival): ", surv, "", "", ChatFormatting.GRAY), false);
+                    ctx.getSource().sendSuccess(() -> line("Saved (Creative): ", creat, "", "", ChatFormatting.GRAY), false);
+                    return 1;
+                }))
                 .then(Commands.literal("help").executes(ctx -> {
                     var src = ctx.getSource();
-                    src.sendSuccess(() -> title("SchizoSwap"), false);
+                    src.sendSuccess(() -> title("TQuickSwap"), false);
                     src.sendSuccess(() -> line("Swap between Survival and Creative profiles."), false);
                     src.sendSuccess(() -> line("Usage: ", "/swap", " ", "[survival|creative]", ChatFormatting.YELLOW), false);
                     src.sendSuccess(() -> line("Examples: ", "/swap", "  or  ", "/swap survival", ChatFormatting.GRAY), false);
-                    src.sendSuccess(() -> link("Source ", "https://github.com/COMPANYNAMEHERE/ShizoSwitch", "(click)") , false);
+                    src.sendSuccess(() -> link("Source ", "https://github.com/COMPANYNAMEHERE/TQuickSwap", "(click)") , false);
+                    src.sendSuccess(() -> line("Config: /swap config help"), false);
                     return 1;
                 }))
+                .then(Commands.literal("config").requires(s -> s.hasPermission(3))
+                    .then(Commands.literal("help").executes(ctx -> {
+                        ctx.getSource().sendSuccess(() -> title("Config"), false);
+                        ctx.getSource().sendSuccess(() -> line("No configurable options available."), false);
+                        return 1;
+                    }))
+                    .executes(ctx -> {
+                        ctx.getSource().sendSuccess(() -> line("Try: /swap config help"), false);
+                        return 1;
+                    })
+                )
                 .then(Commands.argument("mode", StringArgumentType.word())
                     .suggests((c,b)->{ b.suggest("survival"); b.suggest("creative"); return b.buildFuture(); })
                     .executes(ctx -> {
@@ -88,5 +113,10 @@ public class SchizoSwapMod implements ModInitializer {
                     .withUnderlined(true)
                     .withClickEvent(new ClickEvent.OpenUrl(java.net.URI.create(url)))))
             .append(Component.literal(" " + suffix).withStyle(ChatFormatting.DARK_GRAY));
+    }
+
+    private static String fmtInstant(java.time.Instant i) {
+        return java.time.ZonedDateTime.ofInstant(i, java.time.ZoneId.systemDefault())
+            .toLocalDateTime().toString();
     }
 }

@@ -1,20 +1,26 @@
-package dev.zorg.schizoswap;
+package dev.tetralights.tquickswap;
 
+import com.mojang.logging.LogUtils;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtIo;
 import net.minecraft.nbt.NbtAccounter;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.storage.LevelResource;
+import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.FileTime;
+import java.time.Instant;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
  * Minimal file-backed storage under the world save folder.
  */
 public class DualStore {
+    private static final Logger LOGGER = LogUtils.getLogger();
     private final Path baseDir;
 
     private DualStore(Path baseDir) {
@@ -22,7 +28,7 @@ public class DualStore {
     }
 
     public static DualStore of(MinecraftServer server) {
-        Path base = server.getWorldPath(LevelResource.ROOT).resolve("schizoswap");
+        Path base = server.getWorldPath(LevelResource.ROOT).resolve("tquickswap");
         try { Files.createDirectories(base); } catch (IOException ignored) {}
         return new DualStore(base);
     }
@@ -36,14 +42,16 @@ public class DualStore {
             last.putString("profile", profile.name());
             NbtIo.writeCompressed(last, lastFile(player));
         } catch (IOException e) {
-            // swallow to avoid crashing server; could log via LOGGER if desired
+            LOGGER.warn("Failed saving profile {} for {}: {}", profile, player, e.toString());
         }
     }
 
     public CompoundTag load(UUID player, ProfileType profile) {
         Path f = fileFor(player, profile);
         if (Files.exists(f)) {
-            try (var in = java.nio.file.Files.newInputStream(f)) { return NbtIo.readCompressed(in, NbtAccounter.unlimitedHeap()); } catch (IOException ignored) {}
+            try (var in = java.nio.file.Files.newInputStream(f)) { return NbtIo.readCompressed(in, NbtAccounter.unlimitedHeap()); } catch (IOException e) {
+                LOGGER.warn("Failed loading profile {} for {} from {}: {}", profile, player, f, e.toString());
+            }
         }
         return new CompoundTag();
     }
@@ -58,6 +66,18 @@ public class DualStore {
             } catch (Exception ignored) {}
         }
         return ProfileType.SURVIVAL;
+    }
+
+    public Optional<Instant> lastModified(UUID player, ProfileType profile) {
+        try {
+            Path f = fileFor(player, profile);
+            if (!Files.exists(f)) return Optional.empty();
+            FileTime ft = Files.getLastModifiedTime(f);
+            return Optional.ofNullable(ft).map(FileTime::toInstant);
+        } catch (IOException e) {
+            LOGGER.debug("Failed reading mtime for {} {}: {}", player, profile, e.toString());
+            return Optional.empty();
+        }
     }
 
     private Path fileFor(UUID player, ProfileType profile) {

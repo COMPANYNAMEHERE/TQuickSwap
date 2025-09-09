@@ -1,23 +1,25 @@
-# SchizoSwap
+# TQuickSwap
 
-SchizoSwap lets players maintain two separate in-game profiles (Survival and Creative) and swap between them with a command. Each profile stores inventory, ender chest, XP, health/food, potion effects, abilities, and position/world.
+TQuickSwap lets players maintain two separate in-game profiles (Survival and Creative) and swap between them with a command. Each profile stores inventory, ender chest, XP, health/food, potion effects, abilities, and position/world.
 
 ## Features
 - Dual profiles: Survival and Creative kept separate
 - Full state swap: inventory, ender chest, XP/level, health, hunger, saturation, status effects, flight flags
 - Position/world restore: returns you to the saved world and coordinates
 - Simple command: switch with a single `/swap` call
+  
 - Auto-persist: optional auto-save on disconnect and auto-load on join
 
 ## How It Works
-- Capture: When you swap, SchizoSwap captures your current profile state into an NBT blob (inventory, ender, XP, health/food, effects, abilities, position/world).
-- Store: The data is stored as compressed NBT files per player and profile under the world save folder (`world/schizoswap/`).
+- Capture: When you swap, TQuickSwap captures your current profile state into an NBT blob (inventory, ender, XP, health/food, effects, abilities, position/world).
+- Store: The data is stored as compressed NBT files per player and profile under the world save folder (`world/tquickswap/`).
 - Apply: When switching profiles (or on join), it reads the saved NBT and applies it back to the player, then switches the game mode appropriately.
 
 ## Commands
 - `/swap` — toggles between Survival and Creative
 - `/swap <survival|creative>` — switches explicitly to a target profile
 - `/swap help` — show help and link to repository
+- `/swap config help` — shows available configuration commands (none currently)
 
 Note: Command requires permission to run commands normally allowed for players with access to command usage (server config dependent).
 
@@ -34,7 +36,7 @@ Note: Command requires permission to run commands normally allowed for players w
   <ol>
     <li>Install Fabric Loader (matching your Minecraft version, 1.21.8).</li>
     <li>Install Fabric API (version compatible with 1.21.8).</li>
-    <li>Drop the SchizoSwap mod JAR into the `mods/` folder.</li>
+    <li>Drop the TQuickSwap mod JAR into the `mods/` folder.</li>
     <li>Start the game or server. Ensure command permissions allow use of `/swap`.</li>
   </ol>
 
@@ -55,7 +57,7 @@ Note: Command requires permission to run commands normally allowed for players w
   <ul>
     <li>If swapping does nothing, check server logs for permission or mapping conflicts.</li>
     <li>Ensure Fabric API is present on both client and server when required.</li>
-    <li>Delete per-player NBT files in `world/schizoswap/` if your data format changed during development.</li>
+    <li>Delete per-player NBT files in `world/tquickswap/` if your data format changed during development.</li>
   </ul>
 
 </details>

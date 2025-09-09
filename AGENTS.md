@@ -1,9 +1,9 @@
-SchizoSwap — Agent Guide
+TQuickSwap — Agent Guide
 
 Overview
 - Purpose: Maintain two separate player profiles (Survival/Creative) and swap them via `/swap`.
-- Storage: Per-player compressed NBT under `world/schizoswap/` (e.g., `<uuid>-survival.nbt`).
-- Entrypoint: `dev.zorg.schizoswap.SchizoSwapMod` in `src/main/java`.
+- Storage: Per-player compressed NBT under `world/tquickswap/` (e.g., `<uuid>-survival.nbt`).
+- Entrypoint: `dev.tetralights.tquickswap.TQuickSwapMod` in `src/main/java`.
 - Command: `/swap [survival|creative]`.
 
 Versions
@@ -21,14 +21,14 @@ Build & Run
 - Join: Connect your Fabric 1.21.8 client to `localhost:25565` and use `/swap`.
 
 Key Files
-- Mod entry: `src/main/java/dev/zorg/schizoswap/SchizoSwapMod.java`
-- Storage: `src/main/java/dev/zorg/schizoswap/DualStore.java`
-- Apply/Capture: `src/main/java/dev/zorg/schizoswap/ProfileOps.java`
+- Mod entry: `src/main/java/dev/tetralights/tquickswap/TQuickSwapMod.java`
+- Storage: `src/main/java/dev/tetralights/tquickswap/DualStore.java`
+- Apply/Capture: `src/main/java/dev/tetralights/tquickswap/ProfileOps.java`
 - Mod metadata: `src/main/resources/fabric.mod.json`
 
 Data Locations
-- Profiles: `world/schizoswap/<uuid>-survival.nbt`, `...-creative.nbt`
-- Last profile flag: `world/schizoswap/<uuid>-last.nbt`
+- Profiles: `world/tquickswap/<uuid>-survival.nbt`, `...-creative.nbt`
+- Last profile flag: `world/tquickswap/<uuid>-last.nbt`
 
 Common Tasks
 - Swap profile: `/swap` or `/swap survival|creative`
@@ -43,7 +43,11 @@ Conventions
 
 Release (standalone server)
 1. Build JAR: `./gradlew build` (output in `build/libs/`)
-2. On a Fabric server (1.21.8), place SchizoSwap JAR and Fabric API in `mods/`
+2. On a Fabric server (1.21.8), place TQuickSwap JAR and Fabric API in `mods/`
+
+Changelogs
+- Always add a new changelog entry for releases; do not remove old entries.
+- Determine current version from `src/main/resources/fabric.mod.json` (`version` field) before editing; bump it there and keep notes in `CHANGELOG.md`.
 3. Start server: `java -Xmx4G -Xms2G -jar fabric-server-launch.jar nogui`
 
 Troubleshooting

@@ -1,6 +1,7 @@
-package dev.zorg.schizoswap;
+package dev.tetralights.tquickswap;
 
 
+import com.mojang.logging.LogUtils;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -19,16 +20,20 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
+import org.slf4j.Logger;
 
 
 public class ProfileOps {
+    private static final Logger LOGGER = LogUtils.getLogger();
     public static void swapTo(ServerPlayer p, ProfileType target, DualStore store){
         ProfileType current = p.isCreative() ? ProfileType.CREATIVE : ProfileType.SURVIVAL;
+        LOGGER.info("[TQuickSwap] {} swapping {} -> {}", p.getGameProfile().getName(), current, target);
         store.save(p.getUUID(), current, capture(p));
         CompoundTag targetNbt = store.load(p.getUUID(), target);
         if(!targetNbt.isEmpty()) apply(p, targetNbt);
         p.setGameMode(target==ProfileType.SURVIVAL ? GameType.SURVIVAL : GameType.CREATIVE);
         store.save(p.getUUID(), target, capture(p));
+        LOGGER.info("[TQuickSwap] {} now in {}", p.getGameProfile().getName(), target);
     }
 
 
@@ -175,4 +180,6 @@ public class ProfileOps {
         var res = ItemStack.CODEC.parse(ops, t);
         return res.result().orElse(ItemStack.EMPTY);
     }
+
+    // All advancement-related behavior removed
 }
