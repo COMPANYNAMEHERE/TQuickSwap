@@ -7,6 +7,8 @@ import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.Style;
+import net.minecraft.ChatFormatting;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.GameType;
 
@@ -24,6 +26,15 @@ public class SchizoSwapMod implements ModInitializer {
                     ctx.getSource().sendSuccess(() -> Component.literal("Switched to " + target), true);
                     return 1;
                 })
+                .then(Commands.literal("help").executes(ctx -> {
+                    var src = ctx.getSource();
+                    src.sendSuccess(() -> title("SchizoSwap"), false);
+                    src.sendSuccess(() -> line("Swap between Survival and Creative profiles."), false);
+                    src.sendSuccess(() -> line("Usage: ", "/profileswap", " ", "[survival|creative]", ChatFormatting.YELLOW), false);
+                    src.sendSuccess(() -> line("Examples: ", "/profileswap", "  or  ", "/profileswap survival", ChatFormatting.GRAY), false);
+                    src.sendSuccess(() -> line("Source: https://github.com/"), false);
+                    return 1;
+                }))
                 .then(Commands.argument("mode", StringArgumentType.word())
                     .suggests((c,b)->{ b.suggest("survival"); b.suggest("creative"); return b.buildFuture(); })
                     .executes(ctx -> {
@@ -51,4 +62,23 @@ public class SchizoSwapMod implements ModInitializer {
             if(!nbt.isEmpty()) ProfileOps.apply(p, nbt);
         });
     }
+
+    private static Component title(String name) {
+        return Component.literal("== ").withStyle(ChatFormatting.DARK_GRAY)
+            .append(Component.literal(name).withStyle(ChatFormatting.AQUA, ChatFormatting.BOLD))
+            .append(Component.literal(" ==").withStyle(ChatFormatting.DARK_GRAY));
+    }
+
+    private static Component line(String prefix, String a, String b, String c, ChatFormatting color) {
+        return Component.literal(prefix).withStyle(ChatFormatting.GRAY)
+            .append(Component.literal(a).withStyle(color))
+            .append(Component.literal(b).withStyle(ChatFormatting.GRAY))
+            .append(Component.literal(c).withStyle(color));
+    }
+
+    private static Component line(String text) {
+        return Component.literal(text).withStyle(ChatFormatting.GRAY);
+    }
+
+    // Simple link display (no click handler to avoid client-side restrictions)
 }

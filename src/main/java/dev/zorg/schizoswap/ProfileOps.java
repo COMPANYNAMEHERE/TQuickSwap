@@ -1,14 +1,22 @@
 package dev.zorg.schizoswap;
 
 
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.core.registries.Registries;
+import net.minecraft.world.Container;
+import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
 
@@ -29,12 +37,28 @@ public class ProfileOps {
         n.putString("world", p.level().dimension().location().toString());
         n.putDouble("x", p.getX()); n.putDouble("y", p.getY()); n.putDouble("z", p.getZ());
         n.putFloat("yaw", p.getYRot()); n.putFloat("pitch", p.getXRot());
-        // Inventory and ender chest serialization adapted post 1.21 data component changes is omitted here
+
+        HolderLookup.Provider lookup = p.level().registryAccess();
+
+        // Inventory: split into items/armor/offhand to avoid internal API changes
+        // Save entire inventory as a flat container
+        n.put("inv", saveContainer(p.getInventory(), lookup));
+
+        // Ender chest
+        n.put("ender", saveContainer(p.getEnderChestInventory(), lookup));
+
+        // Experience/health/food
         n.putInt("level", p.experienceLevel); n.putFloat("xp", p.experienceProgress);
         n.putFloat("health", p.getHealth());
         n.putInt("food", p.getFoodData().getFoodLevel());
         n.putFloat("sat", p.getFoodData().getSaturationLevel());
-        // Status effect serialization omitted to simplify Mojang mapping migration
+
+        // Effects
+        ListTag effects = new ListTag();
+        for (var e : p.getActiveEffects()) effects.add(saveEffect(e));
+        n.put("effects", effects);
+
+        // Abilities
         n.putBoolean("allowFlight", p.getAbilities().mayfly);
         n.putBoolean("flying", p.getAbilities().flying);
         return n;
@@ -56,7 +80,10 @@ public class ProfileOps {
             }
         }
 
-        // Inventory and ender chest deserialization omitted in this mapping migration
+        // Inventory and ender chest
+        HolderLookup.Provider lookup = p.level().registryAccess();
+        if (n.contains("inv")) n.getList("inv").ifPresent(list -> loadContainer(p.getInventory(), list, lookup));
+        if (n.contains("ender")) n.getList("ender").ifPresent(list -> loadContainer(p.getEnderChestInventory(), list, lookup));
 
 
         p.experienceLevel = n.getInt("level").orElse(p.experienceLevel);
@@ -66,12 +93,86 @@ public class ProfileOps {
         p.getFoodData().setFoodLevel(n.getInt("food").orElse(p.getFoodData().getFoodLevel()));
         p.getFoodData().setSaturation(n.getFloat("sat").orElse(p.getFoodData().getSaturationLevel()));
 
-
-        // Effect deserialization omitted
+        // Effects
+        p.removeAllEffects();
+        n.getList("effects").ifPresent(l -> {
+            for (int i=0; i<l.size(); i++) {
+                CompoundTag ct = l.getCompound(i).orElse(new CompoundTag());
+                MobEffectInstance inst = loadEffect(ct);
+                if (inst != null) p.addEffect(inst);
+            }
+        });
 
 
         p.getAbilities().mayfly = n.getBoolean("allowFlight").orElse(p.getAbilities().mayfly);
         p.getAbilities().flying = n.getBoolean("flying").orElse(p.getAbilities().flying) && p.getAbilities().mayfly;
         p.onUpdateAbilities();
+    }
+
+    private static ListTag saveContainer(Container c, HolderLookup.Provider lookup) {
+        ListTag out = new ListTag();
+        for (int i = 0; i < c.getContainerSize(); i++) {
+            ItemStack s = c.getItem(i);
+            if (!s.isEmpty()) {
+                CompoundTag t = encodeItemStack(s, lookup);
+                t.putByte("Slot", (byte) i);
+                out.add(t);
+            }
+        }
+        return out;
+    }
+
+    private static void loadContainer(Container c, ListTag data, HolderLookup.Provider lookup) {
+        for (int i = 0; i < c.getContainerSize(); i++) c.setItem(i, ItemStack.EMPTY);
+        for (int i = 0; i < data.size(); i++) {
+            CompoundTag t = data.getCompound(i).orElse(new CompoundTag());
+            int slot = t.getByte("Slot").orElse((byte)0) & 255;
+            ItemStack s = decodeItemStack(t, lookup);
+            if (slot >= 0 && slot < c.getContainerSize()) c.setItem(slot, s);
+        }
+    }
+
+    private static CompoundTag saveEffect(MobEffectInstance e) {
+        CompoundTag t = new CompoundTag();
+        var keyOpt = e.getEffect().unwrapKey();
+        keyOpt.ifPresent(k -> t.putString("id", k.location().toString()));
+        t.putInt("amplifier", e.getAmplifier());
+        t.putInt("duration", e.getDuration());
+        t.putBoolean("ambient", e.isAmbient());
+        t.putBoolean("visible", e.isVisible());
+        t.putBoolean("showIcon", e.showIcon());
+        return t;
+    }
+
+    private static MobEffectInstance loadEffect(CompoundTag t) {
+        String idStr = t.getString("id").orElse("");
+        if (idStr.isEmpty()) return null;
+        var rl = ResourceLocation.tryParse(idStr);
+        if (rl == null) return null;
+        var key = ResourceKey.create(Registries.MOB_EFFECT, rl);
+        var effOpt = BuiltInRegistries.MOB_EFFECT.get(key);
+        if (effOpt.isEmpty()) return null;
+        int amp = t.getInt("amplifier").orElse(0);
+        int dur = t.getInt("duration").orElse(0);
+        boolean amb = t.getBoolean("ambient").orElse(false);
+        boolean vis = t.getBoolean("visible").orElse(true);
+        boolean show = t.getBoolean("showIcon").orElse(true);
+        return new MobEffectInstance(effOpt.get(), dur, amp, amb, vis, show);
+    }
+
+    private static CompoundTag encodeItemStack(ItemStack s, HolderLookup.Provider lookup) {
+        var ops = net.minecraft.resources.RegistryOps.create(net.minecraft.nbt.NbtOps.INSTANCE, lookup);
+        var res = ItemStack.CODEC.encodeStart(ops, s);
+        Tag tag = res.result().orElseGet(CompoundTag::new);
+        if (tag instanceof CompoundTag ct) return ct;
+        CompoundTag wrap = new CompoundTag();
+        wrap.put("v", tag);
+        return wrap;
+    }
+
+    private static ItemStack decodeItemStack(CompoundTag t, HolderLookup.Provider lookup) {
+        var ops = net.minecraft.resources.RegistryOps.create(net.minecraft.nbt.NbtOps.INSTANCE, lookup);
+        var res = ItemStack.CODEC.parse(ops, t);
+        return res.result().orElse(ItemStack.EMPTY);
     }
 }
