@@ -27,13 +27,27 @@ public class ProfileOps {
     private static final Logger LOGGER = LogUtils.getLogger();
     public static void swapTo(ServerPlayer p, ProfileType target, DualStore store){
         ProfileType current = p.isCreative() ? ProfileType.CREATIVE : ProfileType.SURVIVAL;
-        LOGGER.info("[TQuickSwap] {} swapping {} -> {}", p.getGameProfile().getName(), current, target);
+        // Load previous snapshot for current profile to compute distance
+        CompoundTag prev = store.load(p.getUUID(), current);
+        double px = prev.getDouble("x").orElse(p.getX());
+        double py = prev.getDouble("y").orElse(p.getY());
+        double pz = prev.getDouble("z").orElse(p.getZ());
+        double dx = p.getX() - px;
+        double dy = p.getY() - py;
+        double dz = p.getZ() - pz;
+        double dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
+
+        // Persist current, perform swap
         store.save(p.getUUID(), current, capture(p));
         CompoundTag targetNbt = store.load(p.getUUID(), target);
         if(!targetNbt.isEmpty()) apply(p, targetNbt);
         p.setGameMode(target==ProfileType.SURVIVAL ? GameType.SURVIVAL : GameType.CREATIVE);
         store.save(p.getUUID(), target, capture(p));
-        LOGGER.info("[TQuickSwap] {} now in {}", p.getGameProfile().getName(), target);
+
+        // Single concise log line with distance traveled
+        LOGGER.info("[TQuickSwap] {} swapped {} -> {} | distance: {} blocks",
+            p.getGameProfile().getName(), current, target,
+            String.format(java.util.Locale.ROOT, "%.2f", dist));
     }
 
 
