@@ -23,3 +23,82 @@ Additional Resources:
 ==========
 Community Documentation: https://docs.neoforged.net/  
 NeoForged Discord: https://discord.neoforged.net/
+
+# TQuickSwap (NeoForge 1.21.1)
+
+Fast, minimal mod to toggle player gamemode. Built for **NeoForge** on **Minecraft 1.21.1**.
+
+## Requirements
+- **Java 21**
+- **Gradle Wrapper** (use the included `./gradlew`)
+- **NeoForge** dev environment
+- IDE: IntelliJ IDEA or VS Code with Java
+
+## Getting Started (Dev)
+
+```bash
+# 1) Clone
+git clone https://github.com/COMPANYNAMEHERE/TQuickSwap.git
+cd TQuickSwap
+
+# 2) Generate/refresh IDE files
+./gradlew idea        # IntelliJ
+# or
+./gradlew eclipse     # Eclipse (if you use it)
+
+# 3) Run
+./gradlew runClient
+./gradlew runServer --args="--nogui"
+```
+
+## Build
+
+```bash
+# Build release jar
+./gradlew build
+# Output: build/libs/<modid>-<version>.jar
+```
+
+## Install (User/Server)
+
+1. Download the built jar from `build/libs` or your Releases.
+2. Drop the jar into the `mods/` folder of a **NeoForge 1.21.1** client or server.
+3. Start the game or server.
+
+## Project Layout
+
+- `src/main/java` — Mod source
+- `src/main/resources` — Assets and `META-INF`
+- `src/main/templates` — `mods.toml` template expanded at build
+- `build.gradle` — Uses `net.neoforged.moddev` **2.0.107**, Java **21**, parchment mappings
+
+## Common Tasks
+
+```bash
+# Data generation (if used)
+./gradlew runData
+
+# Publish to local maven (optional)
+./gradlew publish
+```
+
+## Configuration
+
+- Java toolchain is pinned to **21** in `build.gradle`.
+- NeoForge version, mappings, and mod metadata are read from `gradle.properties`.
+- Run configs: `runClient`, `runServer`, `gameTestServer`, `runData`.
+
+## Compatibility
+
+- **Minecraft:** 1.21.1  
+- **Loader:** NeoForge
+
+## License
+
+Specify your license here. Example: MIT.
+
+---
+
+_Notes:_  
+- Replace organization and links as needed.  
+- If you expose commands or keybinds for swapping gamemode, document them here.

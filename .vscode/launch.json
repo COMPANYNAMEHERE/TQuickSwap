@@ -6,17 +6,17 @@
       "request": "launch",
       "name": "Client",
       "presentation": {
-        "group": "Mod Development - tquickswap-1.21.1-neoforge",
+        "group": "Mod Development - TQuickSwap",
         "order": 0
       },
-      "projectName": "tquickswap-1.21.1-neoforge",
+      "projectName": "TQuickSwap",
       "mainClass": "net.neoforged.devlaunch.Main",
       "args": [
-        "@/Users/joostvantiggelen/Documents/tquickswap-1.21.1-neoforge/build/moddev/clientRunProgramArgs.txt"
+        "@/Users/joostvantiggelen/Documents/Coding/Minecraft Mod/TQuickSwap/build/moddev/clientRunProgramArgs.txt"
       ],
       "vmArgs": [
-        "@/Users/joostvantiggelen/Documents/tquickswap-1.21.1-neoforge/build/moddev/clientRunVmArgs.txt",
-        "-Dfml.modFolders\u003dtquickswap%%/Users/joostvantiggelen/Documents/tquickswap-1.21.1-neoforge/bin/main"
+        "@/Users/joostvantiggelen/Documents/Coding/Minecraft Mod/TQuickSwap/build/moddev/clientRunVmArgs.txt",
+        "-Dfml.modFolders\u003dtquickswap%%/Users/joostvantiggelen/Documents/Coding/Minecraft Mod/TQuickSwap/bin/main"
       ],
       "cwd": "${workspaceFolder}/run",
       "env": {},
@@ -28,17 +28,17 @@
       "request": "launch",
       "name": "Data",
       "presentation": {
-        "group": "Mod Development - tquickswap-1.21.1-neoforge",
+        "group": "Mod Development - TQuickSwap",
         "order": 1
       },
-      "projectName": "tquickswap-1.21.1-neoforge",
+      "projectName": "TQuickSwap",
       "mainClass": "net.neoforged.devlaunch.Main",
       "args": [
-        "@/Users/joostvantiggelen/Documents/tquickswap-1.21.1-neoforge/build/moddev/dataRunProgramArgs.txt"
+        "@/Users/joostvantiggelen/Documents/Coding/Minecraft Mod/TQuickSwap/build/moddev/dataRunProgramArgs.txt"
       ],
       "vmArgs": [
-        "@/Users/joostvantiggelen/Documents/tquickswap-1.21.1-neoforge/build/moddev/dataRunVmArgs.txt",
-        "-Dfml.modFolders\u003dtquickswap%%/Users/joostvantiggelen/Documents/tquickswap-1.21.1-neoforge/bin/main"
+        "@/Users/joostvantiggelen/Documents/Coding/Minecraft Mod/TQuickSwap/build/moddev/dataRunVmArgs.txt",
+        "-Dfml.modFolders\u003dtquickswap%%/Users/joostvantiggelen/Documents/Coding/Minecraft Mod/TQuickSwap/bin/main"
       ],
       "cwd": "${workspaceFolder}/run",
       "env": {},
@@ -50,17 +50,17 @@
       "request": "launch",
       "name": "GameTestServer",
       "presentation": {
-        "group": "Mod Development - tquickswap-1.21.1-neoforge",
+        "group": "Mod Development - TQuickSwap",
         "order": 2
       },
-      "projectName": "tquickswap-1.21.1-neoforge",
+      "projectName": "TQuickSwap",
       "mainClass": "net.neoforged.devlaunch.Main",
       "args": [
-        "@/Users/joostvantiggelen/Documents/tquickswap-1.21.1-neoforge/build/moddev/gameTestServerRunProgramArgs.txt"
+        "@/Users/joostvantiggelen/Documents/Coding/Minecraft Mod/TQuickSwap/build/moddev/gameTestServerRunProgramArgs.txt"
       ],
       "vmArgs": [
-        "@/Users/joostvantiggelen/Documents/tquickswap-1.21.1-neoforge/build/moddev/gameTestServerRunVmArgs.txt",
-        "-Dfml.modFolders\u003dtquickswap%%/Users/joostvantiggelen/Documents/tquickswap-1.21.1-neoforge/bin/main"
+        "@/Users/joostvantiggelen/Documents/Coding/Minecraft Mod/TQuickSwap/build/moddev/gameTestServerRunVmArgs.txt",
+        "-Dfml.modFolders\u003dtquickswap%%/Users/joostvantiggelen/Documents/Coding/Minecraft Mod/TQuickSwap/bin/main"
       ],
       "cwd": "${workspaceFolder}/run",
       "env": {},
@@ -72,17 +72,17 @@
       "request": "launch",
       "name": "Server",
       "presentation": {
-        "group": "Mod Development - tquickswap-1.21.1-neoforge",
+        "group": "Mod Development - TQuickSwap",
         "order": 3
       },
-      "projectName": "tquickswap-1.21.1-neoforge",
+      "projectName": "TQuickSwap",
       "mainClass": "net.neoforged.devlaunch.Main",
       "args": [
-        "@/Users/joostvantiggelen/Documents/tquickswap-1.21.1-neoforge/build/moddev/serverRunProgramArgs.txt"
+        "@/Users/joostvantiggelen/Documents/Coding/Minecraft Mod/TQuickSwap/build/moddev/serverRunProgramArgs.txt"
       ],
       "vmArgs": [
-        "@/Users/joostvantiggelen/Documents/tquickswap-1.21.1-neoforge/build/moddev/serverRunVmArgs.txt",
-        "-Dfml.modFolders\u003dtquickswap%%/Users/joostvantiggelen/Documents/tquickswap-1.21.1-neoforge/bin/main"
+        "@/Users/joostvantiggelen/Documents/Coding/Minecraft Mod/TQuickSwap/build/moddev/serverRunVmArgs.txt",
+        "-Dfml.modFolders\u003dtquickswap%%/Users/joostvantiggelen/Documents/Coding/Minecraft Mod/TQuickSwap/bin/main"
       ],
       "cwd": "${workspaceFolder}/run",
       "env": {},
