@@ -1,0 +1,13 @@
+{
+  "itemGroup.tquickswap": "Example Mod Tab",
+  "block.tquickswap.example_block": "Example Block",
+  "item.tquickswap.example_item": "Example Item",
+
+  "tquickswap.configuration.title": "TQuickSwap Configs",
+  "tquickswap.configuration.section.tquickswap.common.toml": "TQuickSwap Configs",
+  "tquickswap.configuration.section.tquickswap.common.toml.title": "TQuickSwap Configs",
+  "tquickswap.configuration.items": "Item List",
+  "tquickswap.configuration.logDirtBlock": "Log Dirt Block",
+  "tquickswap.configuration.magicNumberIntroduction": "Magic Number Text",
+  "tquickswap.configuration.magicNumber": "Magic Number"
+}
