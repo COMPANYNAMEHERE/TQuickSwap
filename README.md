@@ -21,9 +21,9 @@ SchizoSwap lets players maintain two separate in-game profiles (Survival and Cre
 Note: Command requires permission to run commands normally allowed for players with access to command usage (server config dependent).
 
 ## Compatibility
-- Minecraft: 1.21.1
-- Loader: Fabric Loader 0.16.x
-- Fabric API: 0.110.0+1.21.1
+- Minecraft: 1.21.8
+- Loader: Fabric Loader 0.16.13
+- Fabric API: 0.133.4+1.21.8
 
 
 <details>
@@ -31,8 +31,8 @@ Note: Command requires permission to run commands normally allowed for players w
 
   <h4>For Players/Servers</h4>
   <ol>
-    <li>Install Fabric Loader (matching your Minecraft version, 1.21.1).</li>
-    <li>Install Fabric API (version compatible with 1.21.1).</li>
+    <li>Install Fabric Loader (matching your Minecraft version, 1.21.8).</li>
+    <li>Install Fabric API (version compatible with 1.21.8).</li>
     <li>Drop the SchizoSwap mod JAR into the `mods/` folder.</li>
     <li>Start the game or server. Ensure command permissions allow use of `/profileswap`.</li>
   </ol>
@@ -42,9 +42,9 @@ Note: Command requires permission to run commands normally allowed for players w
     <li>Java 21 toolchain installed.</li>
     <li>Gradle project includes:
       <ul>
-        <li>Minecraft: 1.21.1</li>
-        <li>Fabric Loader: 0.16.7</li>
-        <li>Fabric API: 0.110.0+1.21.1</li>
+        <li>Minecraft: 1.21.8</li>
+        <li>Fabric Loader: 0.16.13</li>
+        <li>Fabric API: 0.133.4+1.21.8</li>
       </ul>
     </li>
     <li>Run `gradlew runClient` / `gradlew runServer` for local testing.</li>

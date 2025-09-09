@@ -5,36 +5,33 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
-import net.minecraft.world.GameMode;
-
-
-import static net.minecraft.server.command.CommandManager.argument;
-import static net.minecraft.server.command.CommandManager.literal;
+import net.minecraft.commands.Commands;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.GameType;
 
 
 public class SchizoSwapMod implements ModInitializer {
     @Override public void onInitialize() {
         // Command: /profileswap [survival|creative]
         CommandRegistrationCallback.EVENT.register((dispatcher, reg, env) -> dispatcher.register(
-            literal("profileswap")
+            Commands.literal("profileswap")
                 .executes(ctx -> {
-                    ServerPlayerEntity p = ctx.getSource().getPlayer();
+                    ServerPlayer p = ctx.getSource().getPlayerOrException();
                     DualStore store = DualStore.of(ctx.getSource().getServer());
-                    ProfileType target = (p.interactionManager.getGameMode()==GameMode.CREATIVE) ? ProfileType.SURVIVAL : ProfileType.CREATIVE;
+                    ProfileType target = (p.isCreative()) ? ProfileType.SURVIVAL : ProfileType.CREATIVE;
                     ProfileOps.swapTo(p, target, store);
-                    ctx.getSource().sendFeedback(() -> Text.literal("Switched to " + target), true);
+                    ctx.getSource().sendSuccess(() -> Component.literal("Switched to " + target), true);
                     return 1;
                 })
-                .then(argument("mode", StringArgumentType.word())
+                .then(Commands.argument("mode", StringArgumentType.word())
                     .suggests((c,b)->{ b.suggest("survival"); b.suggest("creative"); return b.buildFuture(); })
                     .executes(ctx -> {
-                        ServerPlayerEntity p = ctx.getSource().getPlayer();
+                        ServerPlayer p = ctx.getSource().getPlayerOrException();
                         ProfileType target = ProfileType.valueOf(StringArgumentType.getString(ctx, "mode").toUpperCase());
                         DualStore store = DualStore.of(ctx.getSource().getServer());
                         ProfileOps.swapTo(p, target, store);
-                        ctx.getSource().sendFeedback(() -> Text.literal("Switched to " + target), true);
+                        ctx.getSource().sendSuccess(() -> Component.literal("Switched to " + target), true);
                         return 1;
                     })
                 )
@@ -44,13 +41,13 @@ public class SchizoSwapMod implements ModInitializer {
         // Optional: auto-save on quit, auto-load on join
         ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
             var p = handler.player; var store = DualStore.of(server);
-            var current = p.interactionManager.getGameMode()==GameMode.CREATIVE ? ProfileType.CREATIVE : ProfileType.SURVIVAL;
-            store.save(p.getUuid(), current, ProfileOps.capture(p));
+            var current = p.isCreative() ? ProfileType.CREATIVE : ProfileType.SURVIVAL;
+            store.save(p.getUUID(), current, ProfileOps.capture(p));
         });
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
             var p = handler.player; var store = DualStore.of(server);
-            var last = store.last(p.getUuid());
-            var nbt = store.load(p.getUuid(), last);
+            var last = store.last(p.getUUID());
+            var nbt = store.load(p.getUUID(), last);
             if(!nbt.isEmpty()) ProfileOps.apply(p, nbt);
         });
     }

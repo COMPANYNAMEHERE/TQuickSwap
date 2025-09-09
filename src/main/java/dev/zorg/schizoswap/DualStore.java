@@ -1,9 +1,10 @@
 package dev.zorg.schizoswap;
 
-import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtIo;
+import net.minecraft.nbt.NbtAccounter;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.WorldSavePath;
+import net.minecraft.world.level.storage.LevelResource;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -21,17 +22,17 @@ public class DualStore {
     }
 
     public static DualStore of(MinecraftServer server) {
-        Path base = server.getSavePath(WorldSavePath.ROOT).resolve("schizoswap");
+        Path base = server.getWorldPath(LevelResource.ROOT).resolve("schizoswap");
         try { Files.createDirectories(base); } catch (IOException ignored) {}
         return new DualStore(base);
     }
 
-    public void save(UUID player, ProfileType profile, NbtCompound data) {
+    public void save(UUID player, ProfileType profile, CompoundTag data) {
         // also record last profile switched-to
         try {
             Files.createDirectories(baseDir);
             NbtIo.writeCompressed(data, fileFor(player, profile));
-            NbtCompound last = new NbtCompound();
+            CompoundTag last = new CompoundTag();
             last.putString("profile", profile.name());
             NbtIo.writeCompressed(last, lastFile(player));
         } catch (IOException e) {
@@ -39,20 +40,20 @@ public class DualStore {
         }
     }
 
-    public NbtCompound load(UUID player, ProfileType profile) {
+    public CompoundTag load(UUID player, ProfileType profile) {
         Path f = fileFor(player, profile);
         if (Files.exists(f)) {
-            try { return NbtIo.readCompressed(f.toFile()); } catch (IOException ignored) {}
+            try (var in = java.nio.file.Files.newInputStream(f)) { return NbtIo.readCompressed(in, NbtAccounter.unlimitedHeap()); } catch (IOException ignored) {}
         }
-        return new NbtCompound();
+        return new CompoundTag();
     }
 
     public ProfileType last(UUID player) {
         Path f = lastFile(player);
         if (Files.exists(f)) {
-            try {
-                NbtCompound n = NbtIo.readCompressed(f.toFile());
-                String name = n.getString("profile");
+            try (var in = java.nio.file.Files.newInputStream(f)) {
+                CompoundTag n = NbtIo.readCompressed(in, NbtAccounter.unlimitedHeap());
+                String name = n.getString("profile").orElse("");
                 if (!name.isEmpty()) return ProfileType.valueOf(name);
             } catch (Exception ignored) {}
         }

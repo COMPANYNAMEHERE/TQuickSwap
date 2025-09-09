@@ -1,5 +1,5 @@
 plugins {
-    id 'fabric-loom' version '1.7.4'
+    id 'fabric-loom' version '1.10.1'
     id 'java-library'
     id 'maven-publish'
 }
@@ -8,8 +8,8 @@ group = 'dev.zorg'
 version = '0.1.0'
 
 repositories {
-    mavenCentral()
     maven { url = 'https://maven.fabricmc.net/' }
+    mavenCentral()
 }
 
 loom {
@@ -17,11 +17,11 @@ loom {
 }
 
 dependencies {
-    minecraft 'com.mojang:minecraft:1.21.1'
-    // Use Yarn mappings to match the source imports (ServerPlayerEntity, GameMode, Text, etc.)
-    mappings 'net.fabricmc:yarn:1.21.1+build.10:v2'
-    modImplementation 'net.fabricmc:fabric-loader:0.16.7'
-    modImplementation 'net.fabricmc.fabric-api:fabric-api:0.110.0+1.21.1'
+    minecraft 'com.mojang:minecraft:1.21.8'
+    // Use Mojang (official) mappings only
+    mappings loom.officialMojangMappings()
+    modImplementation 'net.fabricmc:fabric-loader:0.16.13'
+    modImplementation 'net.fabricmc.fabric-api:fabric-api:0.133.4+1.21.8'
 }
 
 java {
