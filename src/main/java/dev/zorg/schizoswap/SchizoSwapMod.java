@@ -8,6 +8,7 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
+import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.ChatFormatting;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.GameType;
@@ -15,9 +16,9 @@ import net.minecraft.world.level.GameType;
 
 public class SchizoSwapMod implements ModInitializer {
     @Override public void onInitialize() {
-        // Command: /profileswap [survival|creative]
+        // Command: /swap [survival|creative]
         CommandRegistrationCallback.EVENT.register((dispatcher, reg, env) -> dispatcher.register(
-            Commands.literal("profileswap")
+            Commands.literal("swap")
                 .executes(ctx -> {
                     ServerPlayer p = ctx.getSource().getPlayerOrException();
                     DualStore store = DualStore.of(ctx.getSource().getServer());
@@ -30,9 +31,9 @@ public class SchizoSwapMod implements ModInitializer {
                     var src = ctx.getSource();
                     src.sendSuccess(() -> title("SchizoSwap"), false);
                     src.sendSuccess(() -> line("Swap between Survival and Creative profiles."), false);
-                    src.sendSuccess(() -> line("Usage: ", "/profileswap", " ", "[survival|creative]", ChatFormatting.YELLOW), false);
-                    src.sendSuccess(() -> line("Examples: ", "/profileswap", "  or  ", "/profileswap survival", ChatFormatting.GRAY), false);
-                    src.sendSuccess(() -> line("Source: https://github.com/"), false);
+                    src.sendSuccess(() -> line("Usage: ", "/swap", " ", "[survival|creative]", ChatFormatting.YELLOW), false);
+                    src.sendSuccess(() -> line("Examples: ", "/swap", "  or  ", "/swap survival", ChatFormatting.GRAY), false);
+                    src.sendSuccess(() -> link("Source ", "https://github.com/COMPANYNAMEHERE/ShizoSwitch", "(click)") , false);
                     return 1;
                 }))
                 .then(Commands.argument("mode", StringArgumentType.word())
@@ -80,5 +81,12 @@ public class SchizoSwapMod implements ModInitializer {
         return Component.literal(text).withStyle(ChatFormatting.GRAY);
     }
 
-    // Simple link display (no click handler to avoid client-side restrictions)
+    private static Component link(String prefix, String url, String suffix) {
+        return Component.literal(prefix).withStyle(ChatFormatting.GRAY)
+            .append(Component.literal(url)
+                .setStyle(Style.EMPTY.withColor(ChatFormatting.GOLD)
+                    .withUnderlined(true)
+                    .withClickEvent(new ClickEvent.OpenUrl(java.net.URI.create(url)))))
+            .append(Component.literal(" " + suffix).withStyle(ChatFormatting.DARK_GRAY));
+    }
 }

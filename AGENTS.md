@@ -1,10 +1,10 @@
 SchizoSwap — Agent Guide
 
 Overview
-- Purpose: Maintain two separate player profiles (Survival/Creative) and swap them via `/profileswap`.
+- Purpose: Maintain two separate player profiles (Survival/Creative) and swap them via `/swap`.
 - Storage: Per-player compressed NBT under `world/schizoswap/` (e.g., `<uuid>-survival.nbt`).
 - Entrypoint: `dev.zorg.schizoswap.SchizoSwapMod` in `src/main/java`.
-- Command: `/profileswap [survival|creative]`.
+- Command: `/swap [survival|creative]`.
 
 Versions
 - Minecraft: 1.21.8
@@ -18,7 +18,7 @@ Build & Run
 - Build: `./gradlew clean build`
 - Dev server: `./gradlew runServer` (accept EULA in `run/eula.txt` on first run)
 - Dev client: `./gradlew runClient`
-- Join: Connect your Fabric 1.21.8 client to `localhost:25565` and use `/profileswap`.
+- Join: Connect your Fabric 1.21.8 client to `localhost:25565` and use `/swap`.
 
 Key Files
 - Mod entry: `src/main/java/dev/zorg/schizoswap/SchizoSwapMod.java`
@@ -31,7 +31,7 @@ Data Locations
 - Last profile flag: `world/schizoswap/<uuid>-last.nbt`
 
 Common Tasks
-- Swap profile: `/profileswap` or `/profileswap survival|creative`
+- Swap profile: `/swap` or `/swap survival|creative`
 - Clear caches if mappings get weird:
   - `rm -rf .gradle/ ~/.gradle/caches/modules-2/files-2.1/net.fabricmc.yarn`
   - `rm -rf ~/.gradle/caches/modules-2/files-2.1/net.fabricmc.fabric-api`
@@ -48,4 +48,4 @@ Release (standalone server)
 
 Troubleshooting
 - Loom/Gradle mismatch: Project pins Loom 1.10.1 and Gradle 8.12.
-- Permissions: You may need to `op` your player to use `/profileswap`.
+- Permissions: You may need to `op` your player to use `/swap`.

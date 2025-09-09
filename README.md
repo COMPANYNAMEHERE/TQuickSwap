@@ -6,7 +6,7 @@ SchizoSwap lets players maintain two separate in-game profiles (Survival and Cre
 - Dual profiles: Survival and Creative kept separate
 - Full state swap: inventory, ender chest, XP/level, health, hunger, saturation, status effects, flight flags
 - Position/world restore: returns you to the saved world and coordinates
-- Simple command: switch with a single `/profileswap` call
+- Simple command: switch with a single `/swap` call
 - Auto-persist: optional auto-save on disconnect and auto-load on join
 
 ## How It Works
@@ -15,8 +15,9 @@ SchizoSwap lets players maintain two separate in-game profiles (Survival and Cre
 - Apply: When switching profiles (or on join), it reads the saved NBT and applies it back to the player, then switches the game mode appropriately.
 
 ## Commands
-- `/profileswap` — toggles between Survival and Creative
-- `/profileswap <survival|creative>` — switches explicitly to a target profile
+- `/swap` — toggles between Survival and Creative
+- `/swap <survival|creative>` — switches explicitly to a target profile
+- `/swap help` — show help and link to repository
 
 Note: Command requires permission to run commands normally allowed for players with access to command usage (server config dependent).
 
@@ -34,7 +35,7 @@ Note: Command requires permission to run commands normally allowed for players w
     <li>Install Fabric Loader (matching your Minecraft version, 1.21.8).</li>
     <li>Install Fabric API (version compatible with 1.21.8).</li>
     <li>Drop the SchizoSwap mod JAR into the `mods/` folder.</li>
-    <li>Start the game or server. Ensure command permissions allow use of `/profileswap`.</li>
+    <li>Start the game or server. Ensure command permissions allow use of `/swap`.</li>
   </ol>
 
   <h4>For Developers</h4>
