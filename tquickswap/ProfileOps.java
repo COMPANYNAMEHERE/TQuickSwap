@@ -1,9 +1,7 @@
 package dev.tetralights.tquickswap;
 
-
 import com.mojang.logging.LogUtils;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
@@ -14,24 +12,23 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
-import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
-import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
 import org.slf4j.Logger;
 
-
 public class ProfileOps {
     private static final Logger LOGGER = LogUtils.getLogger();
+
     public static void swapTo(ServerPlayer p, ProfileType target, DualStore store){
+        // Determine current profile based on stored active profile, not gamemode
         ProfileType current = store.last(p.getUUID());
         // Load previous snapshot for current profile to compute distance
         CompoundTag prev = store.load(p.getUUID(), current);
-        double px = prev.getDouble("x").orElse(p.getX());
-        double py = prev.getDouble("y").orElse(p.getY());
-        double pz = prev.getDouble("z").orElse(p.getZ());
+        double px = getDoubleOr(prev, "x", p.getX());
+        double py = getDoubleOr(prev, "y", p.getY());
+        double pz = getDoubleOr(prev, "z", p.getZ());
         double dx = p.getX() - px;
         double dy = p.getY() - py;
         double dz = p.getZ() - pz;
@@ -52,13 +49,11 @@ public class ProfileOps {
             String.format(java.util.Locale.ROOT, "%.2f", dist));
     }
 
-
     static CompoundTag capture(ServerPlayer p){
         CompoundTag n = new CompoundTag();
         n.putString("world", p.level().dimension().location().toString());
         n.putDouble("x", p.getX()); n.putDouble("y", p.getY()); n.putDouble("z", p.getZ());
         n.putFloat("yaw", p.getYRot()); n.putFloat("pitch", p.getXRot());
-
         // Save current gamemode for profile-specific persistence when config is disabled
         try {
             var gm = p.gameMode.getGameModeForPlayer();
@@ -67,11 +62,8 @@ public class ProfileOps {
 
         HolderLookup.Provider lookup = p.level().registryAccess();
 
-        // Inventory: split into items/armor/offhand to avoid internal API changes
-        // Save entire inventory as a flat container
+        // Inventory: entire inventory and ender chest
         n.put("inv", saveContainer(p.getInventory(), lookup));
-
-        // Ender chest
         n.put("ender", saveContainer(p.getEnderChestInventory(), lookup));
 
         // Experience/health/food
@@ -91,44 +83,44 @@ public class ProfileOps {
         return n;
     }
 
-
     static void apply(ServerPlayer p, CompoundTag n){
         var worldId = ResourceLocation.tryParse(n.getString("world").orElse(""));
         if (worldId != null && !worldId.getPath().isEmpty()) {
             ResourceKey<Level> worldKey = ResourceKey.create(Registries.DIMENSION, worldId);
             ServerLevel world = p.getServer().getLevel(worldKey);
             if(world!=null) {
-                double x = n.getDouble("x").orElse(p.getX());
-                double y = n.getDouble("y").orElse(p.getY());
-                double z = n.getDouble("z").orElse(p.getZ());
-                float yaw = n.getFloat("yaw").orElse(p.getYRot());
-                float pitch = n.getFloat("pitch").orElse(p.getXRot());
-                p.teleportTo(world, x, y, z, java.util.Set.of(), yaw, pitch, false);
+                double x = getDoubleOr(n, "x", p.getX());
+                double y = getDoubleOr(n, "y", p.getY());
+                double z = getDoubleOr(n, "z", p.getZ());
+                float yaw = getFloatOr(n, "yaw", p.getYRot());
+                float pitch = getFloatOr(n, "pitch", p.getXRot());
+                p.teleportTo(world, x, y, z, java.util.Set.of(), yaw, pitch, true);
             }
         }
 
         // Inventory and ender chest
         HolderLookup.Provider lookup = p.level().registryAccess();
-        if (n.contains("inv")) n.getList("inv").ifPresent(list -> loadContainer(p.getInventory(), list, lookup));
-        if (n.contains("ender")) n.getList("ender").ifPresent(list -> loadContainer(p.getEnderChestInventory(), list, lookup));
+        if (n.contains("inv")) loadContainer(p.getInventory(), n.getList("inv").orElse(new ListTag()), lookup);
+        if (n.contains("ender")) loadContainer(p.getEnderChestInventory(), n.getList("ender").orElse(new ListTag()), lookup);
 
-
-        p.experienceLevel = n.getInt("level").orElse(p.experienceLevel);
-        p.experienceProgress = n.getFloat("xp").orElse(p.experienceProgress);
+        p.experienceLevel = getIntOr(n, "level", p.experienceLevel);
+        p.experienceProgress = getFloatOr(n, "xp", p.experienceProgress);
         p.giveExperiencePoints(0);
-        p.setHealth(Math.min(n.getFloat("health").orElse(p.getHealth()), p.getMaxHealth()));
-        p.getFoodData().setFoodLevel(n.getInt("food").orElse(p.getFoodData().getFoodLevel()));
-        p.getFoodData().setSaturation(n.getFloat("sat").orElse(p.getFoodData().getSaturationLevel()));
+        p.setHealth(Math.min(getFloatOr(n, "health", p.getHealth()), p.getMaxHealth()));
+        p.getFoodData().setFoodLevel(getIntOr(n, "food", p.getFoodData().getFoodLevel()));
+        p.getFoodData().setSaturation(getFloatOr(n, "sat", p.getFoodData().getSaturationLevel()));
 
         // Effects
         p.removeAllEffects();
-        n.getList("effects").ifPresent(l -> {
+        if (n.contains("effects")) {
+            ListTag l = n.getList("effects").orElse(new ListTag());
+            HolderLookup.Provider lookup2 = p.level().registryAccess();
             for (int i=0; i<l.size(); i++) {
                 CompoundTag ct = l.getCompound(i).orElse(new CompoundTag());
-                MobEffectInstance inst = loadEffect(ct);
+                MobEffectInstance inst = loadEffect(ct, lookup2);
                 if (inst != null) p.addEffect(inst);
             }
-        });
+        }
 
         // If config is disabled, restore saved gamemode (supports adventure/spectator)
         if (!Config.switchGamemodeOnSwap() && n.contains("gm")) {
@@ -141,9 +133,8 @@ public class ProfileOps {
             }
         }
 
-
-        p.getAbilities().mayfly = n.getBoolean("allowFlight").orElse(p.getAbilities().mayfly);
-        p.getAbilities().flying = n.getBoolean("flying").orElse(p.getAbilities().flying) && p.getAbilities().mayfly;
+        p.getAbilities().mayfly = getBooleanOr(n, "allowFlight", p.getAbilities().mayfly);
+        p.getAbilities().flying = getBooleanOr(n, "flying", p.getAbilities().flying) && p.getAbilities().mayfly;
         p.onUpdateAbilities();
     }
 
@@ -164,7 +155,7 @@ public class ProfileOps {
         for (int i = 0; i < c.getContainerSize(); i++) c.setItem(i, ItemStack.EMPTY);
         for (int i = 0; i < data.size(); i++) {
             CompoundTag t = data.getCompound(i).orElse(new CompoundTag());
-            int slot = t.getByte("Slot").orElse((byte)0) & 255;
+            int slot = t.contains("Slot") ? ((t.getByte("Slot").orElse((byte)0)) & 255) : 0;
             ItemStack s = decodeItemStack(t, lookup);
             if (slot >= 0 && slot < c.getContainerSize()) c.setItem(slot, s);
         }
@@ -182,20 +173,21 @@ public class ProfileOps {
         return t;
     }
 
-    private static MobEffectInstance loadEffect(CompoundTag t) {
+    private static MobEffectInstance loadEffect(CompoundTag t, HolderLookup.Provider lookup) {
         String idStr = t.getString("id").orElse("");
         if (idStr.isEmpty()) return null;
         var rl = ResourceLocation.tryParse(idStr);
         if (rl == null) return null;
         var key = ResourceKey.create(Registries.MOB_EFFECT, rl);
-        var effOpt = BuiltInRegistries.MOB_EFFECT.get(key);
-        if (effOpt.isEmpty()) return null;
-        int amp = t.getInt("amplifier").orElse(0);
-        int dur = t.getInt("duration").orElse(0);
-        boolean amb = t.getBoolean("ambient").orElse(false);
-        boolean vis = t.getBoolean("visible").orElse(true);
-        boolean show = t.getBoolean("showIcon").orElse(true);
-        return new MobEffectInstance(effOpt.get(), dur, amp, amb, vis, show);
+        var registry = lookup.lookupOrThrow(Registries.MOB_EFFECT);
+        var holderOpt = registry.get(key);
+        if (holderOpt.isEmpty()) return null;
+        int amp = getIntOr(t, "amplifier", 0);
+        int dur = getIntOr(t, "duration", 0);
+        boolean amb = getBooleanOr(t, "ambient", false);
+        boolean vis = getBooleanOr(t, "visible", true);
+        boolean show = getBooleanOr(t, "showIcon", true);
+        return new MobEffectInstance(holderOpt.get(), dur, amp, amb, vis, show);
     }
 
     private static CompoundTag encodeItemStack(ItemStack s, HolderLookup.Provider lookup) {
@@ -214,5 +206,19 @@ public class ProfileOps {
         return res.result().orElse(ItemStack.EMPTY);
     }
 
-    // All advancement-related behavior removed
+    private static int getIntOr(CompoundTag n, String key, int def) {
+        return n.contains(key) ? n.getInt(key).orElse(def) : def;
+    }
+
+    private static float getFloatOr(CompoundTag n, String key, float def) {
+        return n.contains(key) ? n.getFloat(key).orElse(def) : def;
+    }
+
+    private static double getDoubleOr(CompoundTag n, String key, double def) {
+        return n.contains(key) ? n.getDouble(key).orElse(def) : def;
+    }
+
+    private static boolean getBooleanOr(CompoundTag n, String key, boolean def) {
+        return n.contains(key) ? n.getBoolean(key).orElse(def) : def;
+    }
 }

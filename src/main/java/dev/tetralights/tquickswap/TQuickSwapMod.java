@@ -5,11 +5,11 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
+import net.minecraft.ChatFormatting;
 import net.minecraft.commands.Commands;
+import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
-import net.minecraft.network.chat.ClickEvent;
-import net.minecraft.ChatFormatting;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.GameType;
 
@@ -22,7 +22,8 @@ public class TQuickSwapMod implements ModInitializer {
                 .executes(ctx -> {
                     ServerPlayer p = ctx.getSource().getPlayerOrException();
                     DualStore store = DualStore.of(ctx.getSource().getServer());
-                    ProfileType target = (p.isCreative()) ? ProfileType.SURVIVAL : ProfileType.CREATIVE;
+                    ProfileType current = store.last(p.getUUID());
+                    ProfileType target = (current == ProfileType.CREATIVE) ? ProfileType.SURVIVAL : ProfileType.CREATIVE;
                     ProfileOps.swapTo(p, target, store);
                     ctx.getSource().sendSuccess(() -> Component.literal("Switched to " + target), true);
                     return 1;
@@ -31,7 +32,7 @@ public class TQuickSwapMod implements ModInitializer {
                     ServerPlayer p = ctx.getSource().getPlayerOrException();
                     var server = ctx.getSource().getServer();
                     DualStore store = DualStore.of(server);
-                    ProfileType current = p.isCreative() ? ProfileType.CREATIVE : ProfileType.SURVIVAL;
+                    ProfileType current = store.last(p.getUUID());
                     var surv = store.lastModified(p.getUUID(), ProfileType.SURVIVAL).map(TQuickSwapMod::fmtInstant).orElse("never");
                     var creat = store.lastModified(p.getUUID(), ProfileType.CREATIVE).map(TQuickSwapMod::fmtInstant).orElse("never");
                     ctx.getSource().sendSuccess(() -> title("TQuickSwap Status"), false);
@@ -46,23 +47,34 @@ public class TQuickSwapMod implements ModInitializer {
                     src.sendSuccess(() -> line("Swap between Survival and Creative profiles."), false);
                     src.sendSuccess(() -> line("Usage: ", "/swap", " ", "[survival|creative]", ChatFormatting.YELLOW), false);
                     src.sendSuccess(() -> line("Examples: ", "/swap", "  or  ", "/swap survival", ChatFormatting.GRAY), false);
-                    src.sendSuccess(() -> link("Source ", "https://github.com/COMPANYNAMEHERE/TQuickSwap", "(click)") , false);
-                    src.sendSuccess(() -> line("Config: /swap config help"), false);
+                    src.sendSuccess(() -> link("Source ", "https://github.com/COMPANYNAMEHERE/TQuickSwap", "(click)"), false);
+                    src.sendSuccess(() -> line("Config: ", "/swap config", " ", "(help)", ChatFormatting.GRAY), false);
+                    src.sendSuccess(() -> line("Toggle gamemode: ", "/swap config gamemode", "", "", ChatFormatting.GRAY), false);
                     return 1;
                 }))
                 .then(Commands.literal("config").requires(s -> s.hasPermission(3))
-                    .then(Commands.literal("help").executes(ctx -> {
-                        ctx.getSource().sendSuccess(() -> title("Config"), false);
-                        ctx.getSource().sendSuccess(() -> line("No configurable options available."), false);
-                        return 1;
-                    }))
                     .executes(ctx -> {
-                        ctx.getSource().sendSuccess(() -> line("Try: /swap config help"), false);
+                        var src = ctx.getSource();
+                        src.sendSuccess(() -> title("TQuickSwap Config"), false);
+                        src.sendSuccess(() -> line("Usage: ", "/swap config help", "  or  ", "/swap config gamemode", ChatFormatting.YELLOW), false);
+                        src.sendSuccess(() -> line("switchGamemodeOnSwap: ", Boolean.toString(Config.switchGamemodeOnSwap()), "", "", ChatFormatting.AQUA), false);
                         return 1;
                     })
+                    .then(Commands.literal("help").executes(ctx -> {
+                        var src = ctx.getSource();
+                        src.sendSuccess(() -> title("TQuickSwap Config"), false);
+                        src.sendSuccess(() -> line("- gamemode: toggle switching gamemode on swap"), false);
+                        src.sendSuccess(() -> line("Example: ", "/swap config gamemode", "", "", ChatFormatting.GRAY), false);
+                        return 1;
+                    }))
+                    .then(Commands.literal("gamemode").executes(ctx -> {
+                        boolean now = Config.toggleSwitchGamemodeOnSwap();
+                        ctx.getSource().sendSuccess(() -> Component.literal("Switch gamemode on swap: " + (now ? "enabled" : "disabled")), true);
+                        return 1;
+                    }))
                 )
                 .then(Commands.argument("mode", StringArgumentType.word())
-                    .suggests((c,b)->{ b.suggest("survival"); b.suggest("creative"); return b.buildFuture(); })
+                    .suggests((c, b) -> { b.suggest("survival"); b.suggest("creative"); return b.buildFuture(); })
                     .executes(ctx -> {
                         ServerPlayer p = ctx.getSource().getPlayerOrException();
                         ProfileType target = ProfileType.valueOf(StringArgumentType.getString(ctx, "mode").toUpperCase());
@@ -78,14 +90,17 @@ public class TQuickSwapMod implements ModInitializer {
         // Optional: auto-save on quit, auto-load on join
         ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
             var p = handler.player; var store = DualStore.of(server);
-            var current = p.isCreative() ? ProfileType.CREATIVE : ProfileType.SURVIVAL;
+            var current = store.last(p.getUUID());
             store.save(p.getUUID(), current, ProfileOps.capture(p));
         });
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
             var p = handler.player; var store = DualStore.of(server);
             var last = store.last(p.getUUID());
             var nbt = store.load(p.getUUID(), last);
-            if(!nbt.isEmpty()) ProfileOps.apply(p, nbt);
+            if (!nbt.isEmpty()) ProfileOps.apply(p, nbt);
+            if (Config.switchGamemodeOnSwap()) {
+                p.setGameMode(last == ProfileType.SURVIVAL ? GameType.SURVIVAL : GameType.CREATIVE);
+            }
         });
     }
 
