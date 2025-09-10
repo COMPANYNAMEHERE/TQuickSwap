@@ -9,7 +9,6 @@ import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.server.level.ServerPlayer;
-import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.common.NeoForge;
@@ -56,20 +55,8 @@ public class TQuickSwap {
                 src.sendSuccess(() -> line("Usage: ", "/swap", " ", "[survival|creative]", ChatFormatting.YELLOW), false);
                 src.sendSuccess(() -> line("Examples: ", "/swap", "  or  ", "/swap survival", ChatFormatting.GRAY), false);
                 src.sendSuccess(() -> link("Source ", "https://github.com/COMPANYNAMEHERE/TQuickSwap", "(click)"), false);
-                src.sendSuccess(() -> line("Config: /swap config help"), false);
                 return 1;
             }))
-            .then(Commands.literal("config").requires(s -> s.hasPermission(3))
-                .then(Commands.literal("help").executes(ctx -> {
-                    ctx.getSource().sendSuccess(() -> title("Config"), false);
-                    ctx.getSource().sendSuccess(() -> line("No configurable options available."), false);
-                    return 1;
-                }))
-                .executes(ctx -> {
-                    ctx.getSource().sendSuccess(() -> line("Try: /swap config help"), false);
-                    return 1;
-                })
-            )
             .then(Commands.argument("mode", StringArgumentType.word())
                 .suggests((c, b) -> { b.suggest("survival"); b.suggest("creative"); return b.buildFuture(); })
                 .executes(ctx -> {
@@ -88,7 +75,7 @@ public class TQuickSwap {
     @SubscribeEvent
     public void onPlayerLoggedOut(PlayerEvent.PlayerLoggedOutEvent event) {
         if (!(event.getEntity() instanceof ServerPlayer p)) return;
-        var server = p.server;
+        var server = p.getServer();
         var store = DualStore.of(server);
         var current = p.isCreative() ? ProfileType.CREATIVE : ProfileType.SURVIVAL;
         store.save(p.getUUID(), current, ProfileOps.capture(p));
@@ -97,7 +84,7 @@ public class TQuickSwap {
     @SubscribeEvent
     public void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
         if (!(event.getEntity() instanceof ServerPlayer p)) return;
-        var server = p.server;
+        var server = p.getServer();
         var store = DualStore.of(server);
         var last = store.last(p.getUUID());
         var nbt = store.load(p.getUUID(), last);
@@ -126,7 +113,7 @@ public class TQuickSwap {
             .append(Component.literal(url)
                 .setStyle(Style.EMPTY.withColor(ChatFormatting.GOLD)
                     .withUnderlined(true)
-                    .withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, url))))
+                    .withClickEvent(new ClickEvent.OpenUrl(java.net.URI.create(url)))))
             .append(Component.literal(" " + suffix).withStyle(ChatFormatting.DARK_GRAY));
     }
 

@@ -55,7 +55,7 @@ public class DualStore {
         if (Files.exists(f)) {
             try (var in = java.nio.file.Files.newInputStream(f)) {
                 CompoundTag n = NbtIo.readCompressed(in, NbtAccounter.unlimitedHeap());
-                String name = n.getString("profile");
+                String name = n.getString("profile").orElse("");
                 if (!name.isEmpty()) return ProfileType.valueOf(name);
             } catch (Exception ignored) {}
         }
@@ -79,4 +79,3 @@ public class DualStore {
         return baseDir.resolve(player.toString() + "-last.nbt");
     }
 }
-

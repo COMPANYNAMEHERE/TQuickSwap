@@ -24,9 +24,9 @@ Additional Resources:
 Community Documentation: https://docs.neoforged.net/  
 NeoForged Discord: https://discord.neoforged.net/
 
-# TQuickSwap (NeoForge 1.21.1)
+# TQuickSwap (NeoForge 1.21.8)
 
-Fast, minimal mod to toggle player gamemode. Built for **NeoForge** on **Minecraft 1.21.1**.
+Fast, minimal mod to toggle player gamemode. Built for **NeoForge** on **Minecraft 1.21.8**.
 
 ## Requirements
 - **Java 21**
@@ -62,7 +62,7 @@ cd TQuickSwap
 ## Install (User/Server)
 
 1. Download the built jar from `build/libs` or your Releases.
-2. Drop the jar into the `mods/` folder of a **NeoForge 1.21.1** client or server.
+2. Drop the jar into the `mods/` folder of a **NeoForge 1.21.8** client or server.
 3. Start the game or server.
 
 ## Project Layout
@@ -70,7 +70,7 @@ cd TQuickSwap
 - `src/main/java` — Mod source
 - `src/main/resources` — Assets and `META-INF`
 - `src/main/templates` — `mods.toml` template expanded at build
-- `build.gradle` — Uses `net.neoforged.moddev` **2.0.107**, Java **21**, parchment mappings
+- `build.gradle` — Uses `net.neoforged.moddev` **2.0.107**, Java **21**, optional Parchment mappings
 
 ## Common Tasks
 
@@ -90,7 +90,7 @@ cd TQuickSwap
 
 ## Compatibility
 
-- **Minecraft:** 1.21.1  
+- **Minecraft:** 1.21.8  
 - **Loader:** NeoForge
 
 ## License

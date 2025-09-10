@@ -2,7 +2,6 @@ package dev.tetralights.tquickswap;
 
 import com.mojang.logging.LogUtils;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -76,7 +75,7 @@ public class ProfileOps {
     }
 
     static void apply(ServerPlayer p, CompoundTag n){
-        var worldId = ResourceLocation.tryParse(n.getString("world"));
+        var worldId = ResourceLocation.tryParse(n.getString("world").orElse(""));
         if (worldId != null && !worldId.getPath().isEmpty()) {
             ResourceKey<Level> worldKey = ResourceKey.create(Registries.DIMENSION, worldId);
             ServerLevel world = p.getServer().getLevel(worldKey);
@@ -86,14 +85,14 @@ public class ProfileOps {
                 double z = getDoubleOr(n, "z", p.getZ());
                 float yaw = getFloatOr(n, "yaw", p.getYRot());
                 float pitch = getFloatOr(n, "pitch", p.getXRot());
-                p.teleportTo(world, x, y, z, yaw, pitch);
+                p.teleportTo(world, x, y, z, java.util.Set.of(), yaw, pitch, true);
             }
         }
 
         // Inventory and ender chest
         HolderLookup.Provider lookup = p.level().registryAccess();
-        if (n.contains("inv", Tag.TAG_LIST)) loadContainer(p.getInventory(), n.getList("inv", Tag.TAG_COMPOUND), lookup);
-        if (n.contains("ender", Tag.TAG_LIST)) loadContainer(p.getEnderChestInventory(), n.getList("ender", Tag.TAG_COMPOUND), lookup);
+        if (n.contains("inv")) loadContainer(p.getInventory(), n.getList("inv").orElse(new ListTag()), lookup);
+        if (n.contains("ender")) loadContainer(p.getEnderChestInventory(), n.getList("ender").orElse(new ListTag()), lookup);
 
         p.experienceLevel = getIntOr(n, "level", p.experienceLevel);
         p.experienceProgress = getFloatOr(n, "xp", p.experienceProgress);
@@ -104,11 +103,12 @@ public class ProfileOps {
 
         // Effects
         p.removeAllEffects();
-        if (n.contains("effects", Tag.TAG_LIST)) {
-            ListTag l = n.getList("effects", Tag.TAG_COMPOUND);
+        if (n.contains("effects")) {
+            ListTag l = n.getList("effects").orElse(new ListTag());
+            HolderLookup.Provider lookup2 = p.level().registryAccess();
             for (int i=0; i<l.size(); i++) {
-                CompoundTag ct = l.getCompound(i);
-                MobEffectInstance inst = loadEffect(ct);
+                CompoundTag ct = l.getCompound(i).orElse(new CompoundTag());
+                MobEffectInstance inst = loadEffect(ct, lookup2);
                 if (inst != null) p.addEffect(inst);
             }
         }
@@ -134,8 +134,8 @@ public class ProfileOps {
     private static void loadContainer(Container c, ListTag data, HolderLookup.Provider lookup) {
         for (int i = 0; i < c.getContainerSize(); i++) c.setItem(i, ItemStack.EMPTY);
         for (int i = 0; i < data.size(); i++) {
-            CompoundTag t = data.getCompound(i);
-            int slot = t.contains("Slot", Tag.TAG_BYTE) ? (t.getByte("Slot") & 255) : 0;
+            CompoundTag t = data.getCompound(i).orElse(new CompoundTag());
+            int slot = t.contains("Slot") ? ((t.getByte("Slot").orElse((byte)0)) & 255) : 0;
             ItemStack s = decodeItemStack(t, lookup);
             if (slot >= 0 && slot < c.getContainerSize()) c.setItem(slot, s);
         }
@@ -153,13 +153,14 @@ public class ProfileOps {
         return t;
     }
 
-    private static MobEffectInstance loadEffect(CompoundTag t) {
-        String idStr = t.getString("id");
+    private static MobEffectInstance loadEffect(CompoundTag t, HolderLookup.Provider lookup) {
+        String idStr = t.getString("id").orElse("");
         if (idStr.isEmpty()) return null;
         var rl = ResourceLocation.tryParse(idStr);
         if (rl == null) return null;
         var key = ResourceKey.create(Registries.MOB_EFFECT, rl);
-        var holderOpt = BuiltInRegistries.MOB_EFFECT.getHolder(key);
+        var registry = lookup.lookupOrThrow(Registries.MOB_EFFECT);
+        var holderOpt = registry.get(key);
         if (holderOpt.isEmpty()) return null;
         int amp = getIntOr(t, "amplifier", 0);
         int dur = getIntOr(t, "duration", 0);
@@ -186,18 +187,18 @@ public class ProfileOps {
     }
 
     private static int getIntOr(CompoundTag n, String key, int def) {
-        return n.contains(key) ? n.getInt(key) : def;
+        return n.contains(key) ? n.getInt(key).orElse(def) : def;
     }
 
     private static float getFloatOr(CompoundTag n, String key, float def) {
-        return n.contains(key) ? n.getFloat(key) : def;
+        return n.contains(key) ? n.getFloat(key).orElse(def) : def;
     }
 
     private static double getDoubleOr(CompoundTag n, String key, double def) {
-        return n.contains(key) ? n.getDouble(key) : def;
+        return n.contains(key) ? n.getDouble(key).orElse(def) : def;
     }
 
     private static boolean getBooleanOr(CompoundTag n, String key, boolean def) {
-        return n.contains(key) ? n.getBoolean(key) : def;
+        return n.contains(key) ? n.getBoolean(key).orElse(def) : def;
     }
 }
