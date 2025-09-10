@@ -9,7 +9,6 @@ import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.server.level.ServerPlayer;
-import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.common.NeoForge;
@@ -57,19 +56,30 @@ public class TQuickSwap {
                 src.sendSuccess(() -> line("Usage: ", "/swap", " ", "[survival|creative]", ChatFormatting.YELLOW), false);
                 src.sendSuccess(() -> line("Examples: ", "/swap", "  or  ", "/swap survival", ChatFormatting.GRAY), false);
                 src.sendSuccess(() -> link("Source ", "https://github.com/COMPANYNAMEHERE/TQuickSwap", "(click)"), false);
-                src.sendSuccess(() -> line("Config: /swap config help"), false);
+                src.sendSuccess(() -> line("Config: ", "/swap config", " ", "(help)", ChatFormatting.GRAY), false);
+                src.sendSuccess(() -> line("Toggle gamemode: ", "/swap config gamemode", "", "", ChatFormatting.GRAY), false);
                 return 1;
             }))
             .then(Commands.literal("config").requires(s -> s.hasPermission(3))
-                .then(Commands.literal("help").executes(ctx -> {
-                    ctx.getSource().sendSuccess(() -> title("Config"), false);
-                    ctx.getSource().sendSuccess(() -> line("No configurable options available."), false);
-                    return 1;
-                }))
                 .executes(ctx -> {
-                    ctx.getSource().sendSuccess(() -> line("Try: /swap config help"), false);
+                    var src = ctx.getSource();
+                    src.sendSuccess(() -> title("TQuickSwap Config"), false);
+                    src.sendSuccess(() -> line("Usage: ", "/swap config help", "  or  ", "/swap config gamemode", ChatFormatting.YELLOW), false);
+                    src.sendSuccess(() -> line("switchGamemodeOnSwap: ", Boolean.toString(Config.switchGamemodeOnSwap()), "", "", ChatFormatting.AQUA), false);
                     return 1;
                 })
+                .then(Commands.literal("help").executes(ctx -> {
+                    var src = ctx.getSource();
+                    src.sendSuccess(() -> title("TQuickSwap Config"), false);
+                    src.sendSuccess(() -> line("- gamemode: toggle switching gamemode on swap"), false);
+                    src.sendSuccess(() -> line("Example: ", "/swap config gamemode", "", "", ChatFormatting.GRAY), false);
+                    return 1;
+                }))
+                .then(Commands.literal("gamemode").executes(ctx -> {
+                    boolean now = Config.toggleSwitchGamemodeOnSwap();
+                    ctx.getSource().sendSuccess(() -> Component.literal("Switch gamemode on swap: " + (now ? "enabled" : "disabled")), true);
+                    return 1;
+                }))
             )
             .then(Commands.argument("mode", StringArgumentType.word())
                 .suggests((c, b) -> { b.suggest("survival"); b.suggest("creative"); return b.buildFuture(); })
@@ -89,7 +99,7 @@ public class TQuickSwap {
     @SubscribeEvent
     public void onPlayerLoggedOut(PlayerEvent.PlayerLoggedOutEvent event) {
         if (!(event.getEntity() instanceof ServerPlayer p)) return;
-        var server = p.server;
+        var server = p.getServer();
         var store = DualStore.of(server);
         var current = store.last(p.getUUID());
         store.save(p.getUUID(), current, ProfileOps.capture(p));
@@ -98,11 +108,15 @@ public class TQuickSwap {
     @SubscribeEvent
     public void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
         if (!(event.getEntity() instanceof ServerPlayer p)) return;
-        var server = p.server;
+        var server = p.getServer();
         var store = DualStore.of(server);
         var last = store.last(p.getUUID());
         var nbt = store.load(p.getUUID(), last);
         if (!nbt.isEmpty()) ProfileOps.apply(p, nbt);
+        // Respect config on login: align gamemode only when enabled
+        if (Config.switchGamemodeOnSwap()) {
+            p.setGameMode(last == ProfileType.SURVIVAL ? net.minecraft.world.level.GameType.SURVIVAL : net.minecraft.world.level.GameType.CREATIVE);
+        }
     }
 
     private static Component title(String name) {

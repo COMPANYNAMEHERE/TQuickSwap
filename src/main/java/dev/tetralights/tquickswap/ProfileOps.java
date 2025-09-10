@@ -38,7 +38,9 @@ public class ProfileOps {
         store.save(p.getUUID(), current, capture(p));
         CompoundTag targetNbt = store.load(p.getUUID(), target);
         if(!targetNbt.isEmpty()) apply(p, targetNbt);
-        p.setGameMode(target==ProfileType.SURVIVAL ? GameType.SURVIVAL : GameType.CREATIVE);
+        if (Config.switchGamemodeOnSwap()) {
+            p.setGameMode(target==ProfileType.SURVIVAL ? GameType.SURVIVAL : GameType.CREATIVE);
+        }
         store.save(p.getUUID(), target, capture(p));
 
         // Single concise log line with distance traveled
@@ -52,6 +54,11 @@ public class ProfileOps {
         n.putString("world", p.level().dimension().location().toString());
         n.putDouble("x", p.getX()); n.putDouble("y", p.getY()); n.putDouble("z", p.getZ());
         n.putFloat("yaw", p.getYRot()); n.putFloat("pitch", p.getXRot());
+        // Save current gamemode for profile-specific persistence when config is disabled
+        try {
+            var gm = p.gameMode.getGameModeForPlayer();
+            if (gm != null) n.putString("gm", gm.getName());
+        } catch (Throwable ignored) {}
 
         HolderLookup.Provider lookup = p.level().registryAccess();
 
@@ -111,6 +118,17 @@ public class ProfileOps {
                 CompoundTag ct = l.getCompound(i);
                 MobEffectInstance inst = loadEffect(ct);
                 if (inst != null) p.addEffect(inst);
+            }
+        }
+
+        // If config is disabled, restore saved gamemode (supports adventure/spectator)
+        if (!Config.switchGamemodeOnSwap() && n.contains("gm", Tag.TAG_STRING)) {
+            String gmName = n.getString("gm");
+            if (!gmName.isEmpty()) {
+                try {
+                    GameType saved = GameType.byName(gmName, GameType.SURVIVAL);
+                    p.setGameMode(saved);
+                } catch (Throwable ignored) {}
             }
         }
 
