@@ -29,9 +29,9 @@ public class ProfileOps {
         ProfileType current = store.last(p.getUUID());
         // Load previous snapshot for current profile to compute distance
         CompoundTag prev = store.load(p.getUUID(), current);
-        double px = prev.getDouble("x").orElse(p.getX());
-        double py = prev.getDouble("y").orElse(p.getY());
-        double pz = prev.getDouble("z").orElse(p.getZ());
+        double px = getDoubleOr(prev, "x", p.getX());
+        double py = getDoubleOr(prev, "y", p.getY());
+        double pz = getDoubleOr(prev, "z", p.getZ());
         double dx = p.getX() - px;
         double dy = p.getY() - py;
         double dz = p.getZ() - pz;
@@ -93,16 +93,16 @@ public class ProfileOps {
 
 
     static void apply(ServerPlayer p, CompoundTag n){
-        var worldId = ResourceLocation.tryParse(n.getString("world").orElse(""));
+        var worldId = ResourceLocation.tryParse(getStringOr(n, "world", ""));
         if (worldId != null && !worldId.getPath().isEmpty()) {
             ResourceKey<Level> worldKey = ResourceKey.create(Registries.DIMENSION, worldId);
             ServerLevel world = p.getServer().getLevel(worldKey);
             if(world!=null) {
-                double x = n.getDouble("x").orElse(p.getX());
-                double y = n.getDouble("y").orElse(p.getY());
-                double z = n.getDouble("z").orElse(p.getZ());
-                float yaw = n.getFloat("yaw").orElse(p.getYRot());
-                float pitch = n.getFloat("pitch").orElse(p.getXRot());
+                double x = getDoubleOr(n, "x", p.getX());
+                double y = getDoubleOr(n, "y", p.getY());
+                double z = getDoubleOr(n, "z", p.getZ());
+                float yaw = getFloatOr(n, "yaw", p.getYRot());
+                float pitch = getFloatOr(n, "pitch", p.getXRot());
                 p.teleportTo(world, x, y, z, java.util.Set.of(), yaw, pitch, false);
             }
         }
@@ -113,12 +113,12 @@ public class ProfileOps {
         if (n.contains("ender")) n.getList("ender").ifPresent(list -> loadContainer(p.getEnderChestInventory(), list, lookup));
 
 
-        p.experienceLevel = n.getInt("level").orElse(p.experienceLevel);
-        p.experienceProgress = n.getFloat("xp").orElse(p.experienceProgress);
+        p.experienceLevel = getIntOr(n, "level", p.experienceLevel);
+        p.experienceProgress = getFloatOr(n, "xp", p.experienceProgress);
         p.giveExperiencePoints(0);
-        p.setHealth(Math.min(n.getFloat("health").orElse(p.getHealth()), p.getMaxHealth()));
-        p.getFoodData().setFoodLevel(n.getInt("food").orElse(p.getFoodData().getFoodLevel()));
-        p.getFoodData().setSaturation(n.getFloat("sat").orElse(p.getFoodData().getSaturationLevel()));
+        p.setHealth(Math.min(getFloatOr(n, "health", p.getHealth()), p.getMaxHealth()));
+        p.getFoodData().setFoodLevel(getIntOr(n, "food", p.getFoodData().getFoodLevel()));
+        p.getFoodData().setSaturation(getFloatOr(n, "sat", p.getFoodData().getSaturationLevel()));
 
         // Effects
         p.removeAllEffects();
@@ -132,7 +132,7 @@ public class ProfileOps {
 
         // If config is disabled, restore saved gamemode (supports adventure/spectator)
         if (!Config.switchGamemodeOnSwap() && n.contains("gm")) {
-            String gmName = n.getString("gm").orElse("");
+            String gmName = getStringOr(n, "gm", "");
             if (!gmName.isEmpty()) {
                 try {
                     GameType saved = GameType.byName(gmName, GameType.SURVIVAL);
@@ -142,8 +142,8 @@ public class ProfileOps {
         }
 
 
-        p.getAbilities().mayfly = n.getBoolean("allowFlight").orElse(p.getAbilities().mayfly);
-        p.getAbilities().flying = n.getBoolean("flying").orElse(p.getAbilities().flying) && p.getAbilities().mayfly;
+        p.getAbilities().mayfly = getBooleanOr(n, "allowFlight", p.getAbilities().mayfly);
+        p.getAbilities().flying = getBooleanOr(n, "flying", p.getAbilities().flying) && p.getAbilities().mayfly;
         p.onUpdateAbilities();
     }
 
@@ -190,11 +190,11 @@ public class ProfileOps {
         var key = ResourceKey.create(Registries.MOB_EFFECT, rl);
         var effOpt = BuiltInRegistries.MOB_EFFECT.get(key);
         if (effOpt.isEmpty()) return null;
-        int amp = t.getInt("amplifier").orElse(0);
-        int dur = t.getInt("duration").orElse(0);
-        boolean amb = t.getBoolean("ambient").orElse(false);
-        boolean vis = t.getBoolean("visible").orElse(true);
-        boolean show = t.getBoolean("showIcon").orElse(true);
+        int amp = getIntOr(t, "amplifier", 0);
+        int dur = getIntOr(t, "duration", 0);
+        boolean amb = getBooleanOr(t, "ambient", false);
+        boolean vis = getBooleanOr(t, "visible", true);
+        boolean show = getBooleanOr(t, "showIcon", true);
         return new MobEffectInstance(effOpt.get(), dur, amp, amb, vis, show);
     }
 
@@ -215,4 +215,24 @@ public class ProfileOps {
     }
 
     // All advancement-related behavior removed
+
+    private static int getIntOr(CompoundTag n, String key, int def) {
+        return n.contains(key) ? n.getInt(key).orElse(def) : def;
+    }
+
+    private static float getFloatOr(CompoundTag n, String key, float def) {
+        return n.contains(key) ? n.getFloat(key).orElse(def) : def;
+    }
+
+    private static double getDoubleOr(CompoundTag n, String key, double def) {
+        return n.contains(key) ? n.getDouble(key).orElse(def) : def;
+    }
+
+    private static boolean getBooleanOr(CompoundTag n, String key, boolean def) {
+        return n.contains(key) ? n.getBoolean(key).orElse(def) : def;
+    }
+
+    private static String getStringOr(CompoundTag n, String key, String def) {
+        return n.contains(key) ? n.getString(key).orElse(def) : def;
+    }
 }

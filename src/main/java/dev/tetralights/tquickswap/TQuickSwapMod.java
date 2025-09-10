@@ -52,8 +52,12 @@ public class TQuickSwapMod implements ModInitializer {
                     src.sendSuccess(() -> line("Toggle gamemode: ", "/swap config gamemode", "", "", ChatFormatting.GRAY), false);
                     return 1;
                 }))
-                .then(Commands.literal("config").requires(s -> s.hasPermission(3))
+                .then(Commands.literal("config")
                     .executes(ctx -> {
+                        if (!ctx.getSource().hasPermission(3)) {
+                            ctx.getSource().sendFailure(Component.literal("Only OPs can use /swap config.").withStyle(ChatFormatting.RED));
+                            return 0;
+                        }
                         var src = ctx.getSource();
                         src.sendSuccess(() -> title("TQuickSwap Config"), false);
                         src.sendSuccess(() -> line("Usage: ", "/swap config help", "  or  ", "/swap config gamemode", ChatFormatting.YELLOW), false);
@@ -68,6 +72,10 @@ public class TQuickSwapMod implements ModInitializer {
                         return 1;
                     }))
                     .then(Commands.literal("gamemode").executes(ctx -> {
+                        if (!ctx.getSource().hasPermission(3)) {
+                            ctx.getSource().sendFailure(Component.literal("Only OPs can use /swap config gamemode.").withStyle(ChatFormatting.RED));
+                            return 0;
+                        }
                         boolean now = Config.toggleSwitchGamemodeOnSwap();
                         ctx.getSource().sendSuccess(() -> Component.literal("Switch gamemode on swap: " + (now ? "enabled" : "disabled")), true);
                         return 1;

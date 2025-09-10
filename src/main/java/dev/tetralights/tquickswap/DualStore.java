@@ -1,9 +1,11 @@
 package dev.tetralights.tquickswap;
+import com.mojang.logging.LogUtils;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtIo;
 import net.minecraft.nbt.NbtAccounter;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.storage.LevelResource;
+import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -17,6 +19,7 @@ import java.util.UUID;
  * Minimal file-backed storage under the world save folder.
  */
 public class DualStore {
+    private static final Logger LOGGER = LogUtils.getLogger();
     private final Path baseDir;
 
     private DualStore(Path baseDir) {
@@ -37,13 +40,19 @@ public class DualStore {
             CompoundTag last = new CompoundTag();
             last.putString("profile", profile.name());
             NbtIo.writeCompressed(last, lastFile(player));
-        } catch (IOException e) { /* suppress */ }
+        } catch (IOException e) {
+            LOGGER.warn("Failed saving TQuickSwap data for {} ({}): {}", player, profile, e.toString());
+        }
     }
 
     public CompoundTag load(UUID player, ProfileType profile) {
         Path f = fileFor(player, profile);
         if (Files.exists(f)) {
-            try (var in = java.nio.file.Files.newInputStream(f)) { return NbtIo.readCompressed(in, NbtAccounter.unlimitedHeap()); } catch (IOException e) { /* suppress */ }
+            try (var in = java.nio.file.Files.newInputStream(f)) {
+                return NbtIo.readCompressed(in, NbtAccounter.unlimitedHeap());
+            } catch (IOException e) {
+                LOGGER.warn("Failed loading TQuickSwap data for {} ({}): {}", player, profile, e.toString());
+            }
         }
         return new CompoundTag();
     }
@@ -55,7 +64,9 @@ public class DualStore {
                 CompoundTag n = NbtIo.readCompressed(in, NbtAccounter.unlimitedHeap());
                 String name = n.getString("profile").orElse("");
                 if (!name.isEmpty()) return ProfileType.valueOf(name);
-            } catch (Exception ignored) {}
+            } catch (Exception e) {
+                LOGGER.warn("Failed reading last profile for {}: {}", player, e.toString());
+            }
         }
         return ProfileType.SURVIVAL;
     }
@@ -66,7 +77,10 @@ public class DualStore {
             if (!Files.exists(f)) return Optional.empty();
             FileTime ft = Files.getLastModifiedTime(f);
             return Optional.ofNullable(ft).map(FileTime::toInstant);
-        } catch (IOException e) { return Optional.empty(); }
+        } catch (IOException e) {
+            LOGGER.debug("Failed reading lastModified for {} ({}): {}", player, profile, e.toString());
+            return Optional.empty();
+        }
     }
 
     private Path fileFor(UUID player, ProfileType profile) {
