@@ -2,62 +2,51 @@
 
 TQuickSwap lets players maintain two separate in-game profiles (Survival and Creative) and swap between them with a command. Each profile stores inventory, ender chest, XP, health/food, potion effects, abilities, and position/world.
 
+Current version: 1.4.1 (Fabric 1.21.8)
+
 ## Features
-- Dual profiles: Survival and Creative kept separate
+- Dual profiles: separate Survival and Creative states
 - Full state swap: inventory, ender chest, XP/level, health, hunger, saturation, status effects, flight flags
 - Position/world restore: returns you to the saved world and coordinates
-- Simple command: switch with a single `/swap` call
-  
-- Auto-persist: optional auto-save on disconnect and auto-load on join
+- Gamemode alignment toggle: optionally set gamemode to match the target profile
+- Teleport distance logging: logs distance moved by the swap (before vs after apply)
+- Auto-persist: save on disconnect and apply on join
 
 ## How It Works
-- Capture: When you swap, TQuickSwap captures your current profile state into an NBT blob (inventory, ender, XP, health/food, effects, abilities, position/world).
-- Store: The data is stored as compressed NBT files per player and profile under the world save folder (`world/tquickswap/`).
-- Apply: When switching profiles (or on join), it reads the saved NBT and applies it back to the player, then switches the game mode appropriately.
+- Capture: On swap, TQuickSwap captures your current profile state into an NBT blob (inventory, ender, XP, health/food, effects, abilities, position/world).
+- Store: Data is stored as compressed NBT per-player per-profile under the world save folder.
+- Apply: When switching (or on join), the saved NBT is applied back to the player. With the config toggle ON, gamemode is set to match the active profile; with it OFF, each profile keeps its own saved gamemode.
 
 ## Commands
-- `/swap` — toggles between Survival and Creative
-- `/swap <survival|creative>` — switches explicitly to a target profile
-- `/swap help` — show help and link to repository
-- `/swap config help` — shows available configuration commands (none currently)
+- `/swap` — toggle between Survival and Creative
+- `/swap <survival|creative>` — switch explicitly to a target profile
+- `/swap status` — show current profile and last save timestamps
+- `/swap help` — show help and repository link
+- `/swap config help` — show config options
+- `/swap config gamemode` — toggle “switch gamemode on swap”
 
-Note: Command requires permission to run commands normally allowed for players with access to command usage (server config dependent).
+Permissions:
+- `/swap config …` requires OP (permission level 3). Non-OPs get a clear error message.
+- `/swap` itself is available to all players by default.
+
+## Data Locations
+- Profiles: `world/tquickswap/<uuid>-survival.nbt`, `world/tquickswap/<uuid>-creative.nbt`
+- Last profile flag: `world/tquickswap/<uuid>-last.nbt`
 
 ## Compatibility
 - Minecraft: 1.21.8
-- Loader: Fabric Loader 0.16.13
+- Fabric Loader: 0.16.13
 - Fabric API: 0.133.4+1.21.8
 
+## Build & Run
+- Build: `./gradlew clean build`
+- Dev server: `./gradlew runServer` (accept EULA in `run/eula.txt` on first run)
+- Dev client: `./gradlew runClient`
 
-<details>
-  <summary><strong>Setup</strong> (click to expand)</summary>
+## Troubleshooting
+- Permissions: Make sure your player is OP for `/swap config …`.
+- Mappings cache glitches: clear Gradle/Yarn caches if classes can’t be resolved.
+- Data reset: Delete per-player files in `world/tquickswap/` if you changed data formats during development (backup first).
 
-  <h4>For Players/Servers</h4>
-  <ol>
-    <li>Install Fabric Loader (matching your Minecraft version, 1.21.8).</li>
-    <li>Install Fabric API (version compatible with 1.21.8).</li>
-    <li>Drop the TQuickSwap mod JAR into the `mods/` folder.</li>
-    <li>Start the game or server. Ensure command permissions allow use of `/swap`.</li>
-  </ol>
-
-  <h4>For Developers</h4>
-  <ol>
-    <li>Java 21 toolchain installed.</li>
-    <li>Gradle project includes:
-      <ul>
-        <li>Minecraft: 1.21.8</li>
-        <li>Fabric Loader: 0.16.13</li>
-        <li>Fabric API: 0.133.4+1.21.8</li>
-      </ul>
-    </li>
-    <li>Run `gradlew runClient` / `gradlew runServer` for local testing.</li>
-  </ol>
-
-  <h4>Troubleshooting</h4>
-  <ul>
-    <li>If swapping does nothing, check server logs for permission or mapping conflicts.</li>
-    <li>Ensure Fabric API is present on both client and server when required.</li>
-    <li>Delete per-player NBT files in `world/tquickswap/` if your data format changed during development.</li>
-  </ul>
-
-</details>
+## Changelog
+See `CHANGELOG.md` for release notes.
