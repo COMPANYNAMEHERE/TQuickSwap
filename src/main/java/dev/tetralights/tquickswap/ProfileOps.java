@@ -21,7 +21,8 @@ public class ProfileOps {
     private static final Logger LOGGER = LogUtils.getLogger();
 
     public static void swapTo(ServerPlayer p, ProfileType target, DualStore store){
-        ProfileType current = p.isCreative() ? ProfileType.CREATIVE : ProfileType.SURVIVAL;
+        // Determine current profile based on stored active profile, not gamemode
+        ProfileType current = store.last(p.getUUID());
         // Load previous snapshot for current profile to compute distance
         CompoundTag prev = store.load(p.getUUID(), current);
         double px = getDoubleOr(prev, "x", p.getX());
@@ -37,6 +38,7 @@ public class ProfileOps {
         CompoundTag targetNbt = store.load(p.getUUID(), target);
         if(!targetNbt.isEmpty()) apply(p, targetNbt);
         p.setGameMode(target==ProfileType.SURVIVAL ? GameType.SURVIVAL : GameType.CREATIVE);
+        // Save the applied target profile snapshot; this also records target as active
         store.save(p.getUUID(), target, capture(p));
 
         // Single concise log line with distance traveled
