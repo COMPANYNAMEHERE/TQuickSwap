@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## TQuickSwap 1.4.1 (1.21.8)
+- Port latest NeoForge logic to Fabric 1.21.8.
+- Distance metric now measures teleport delta (position before vs after apply).
+- `/swap config` and `/swap config gamemode` show clear OP-only messages when lacking permission.
+- Keep last-profile logic and optional gamemode alignment on join/swap.
+- Keep full profile persistence: position/world, inventory, ender chest, XP, health/food, effects, abilities.
+
 ## TQuickSwap 1.1.1 (1.21.8)
 - Rebrand to TQuickSwap across UI and docs.
 - Add lightweight logging for saves/loads and swaps.
