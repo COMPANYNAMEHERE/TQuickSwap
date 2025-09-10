@@ -24,10 +24,15 @@ public class ProfileOps {
     public static void swapTo(ServerPlayer p, ProfileType target, DualStore store){
         // Determine current profile based on stored active profile, not gamemode
         ProfileType current = store.last(p.getUUID());
-        // Measure distance as the teleport delta: before vs after apply
-        double beforeX = p.getX();
-        double beforeY = p.getY();
-        double beforeZ = p.getZ();
+        // Load previous snapshot for current profile to compute distance
+        CompoundTag prev = store.load(p.getUUID(), current);
+        double px = getDoubleOr(prev, "x", p.getX());
+        double py = getDoubleOr(prev, "y", p.getY());
+        double pz = getDoubleOr(prev, "z", p.getZ());
+        double dx = p.getX() - px;
+        double dy = p.getY() - py;
+        double dz = p.getZ() - pz;
+        double dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
 
         // Persist current, perform swap
         store.save(p.getUUID(), current, capture(p));
@@ -37,15 +42,6 @@ public class ProfileOps {
             p.setGameMode(target==ProfileType.SURVIVAL ? GameType.SURVIVAL : GameType.CREATIVE);
         }
         store.save(p.getUUID(), target, capture(p));
-
-        // Compute distance traveled due to swap (teleport delta)
-        double afterX = p.getX();
-        double afterY = p.getY();
-        double afterZ = p.getZ();
-        double dx = afterX - beforeX;
-        double dy = afterY - beforeY;
-        double dz = afterZ - beforeZ;
-        double dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
 
         // Single concise log line with distance traveled
         LOGGER.info("[TQuickSwap] {} swapped {} -> {} | distance: {} blocks",
