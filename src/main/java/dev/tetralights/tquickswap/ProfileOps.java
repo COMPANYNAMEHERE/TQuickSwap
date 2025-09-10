@@ -22,7 +22,8 @@ public class ProfileOps {
     private static final Logger LOGGER = LogUtils.getLogger();
 
     public static void swapTo(ServerPlayer p, ProfileType target, DualStore store){
-        ProfileType current = p.isCreative() ? ProfileType.CREATIVE : ProfileType.SURVIVAL;
+        // Determine current profile based on stored active profile, not gamemode
+        ProfileType current = store.last(p.getUUID());
         // Load previous snapshot for current profile to compute distance
         CompoundTag prev = store.load(p.getUUID(), current);
         double px = getDoubleOr(prev, "x", p.getX());

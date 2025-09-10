@@ -31,7 +31,8 @@ public class TQuickSwap {
             .executes(ctx -> {
                 ServerPlayer p = ctx.getSource().getPlayerOrException();
                 DualStore store = DualStore.of(ctx.getSource().getServer());
-                ProfileType target = (p.isCreative()) ? ProfileType.SURVIVAL : ProfileType.CREATIVE;
+                ProfileType current = store.last(p.getUUID());
+                ProfileType target = (current == ProfileType.CREATIVE) ? ProfileType.SURVIVAL : ProfileType.CREATIVE;
                 ProfileOps.swapTo(p, target, store);
                 ctx.getSource().sendSuccess(() -> Component.literal("Switched to " + target), true);
                 return 1;
@@ -40,7 +41,7 @@ public class TQuickSwap {
                 ServerPlayer p = ctx.getSource().getPlayerOrException();
                 var server = ctx.getSource().getServer();
                 DualStore store = DualStore.of(server);
-                ProfileType current = p.isCreative() ? ProfileType.CREATIVE : ProfileType.SURVIVAL;
+                ProfileType current = store.last(p.getUUID());
                 var surv = store.lastModified(p.getUUID(), ProfileType.SURVIVAL).map(TQuickSwap::fmtInstant).orElse("never");
                 var creat = store.lastModified(p.getUUID(), ProfileType.CREATIVE).map(TQuickSwap::fmtInstant).orElse("never");
                 ctx.getSource().sendSuccess(() -> title("TQuickSwap Status"), false);
@@ -90,7 +91,7 @@ public class TQuickSwap {
         if (!(event.getEntity() instanceof ServerPlayer p)) return;
         var server = p.server;
         var store = DualStore.of(server);
-        var current = p.isCreative() ? ProfileType.CREATIVE : ProfileType.SURVIVAL;
+        var current = store.last(p.getUUID());
         store.save(p.getUUID(), current, ProfileOps.capture(p));
     }
 
