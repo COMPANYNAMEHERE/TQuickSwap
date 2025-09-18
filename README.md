@@ -1,104 +1,56 @@
+# TQuickSwap 1.5.0
 
-Installation information
-=======
+TQuickSwap is a lightweight **NeoForge** mod for Minecraft **1.21.1** that lets players flip between dedicated Survival and Creative profiles without losing progress. Inventories, ender chests, location, XP, effects, abilities, and gamemode preferences are all stored per-profile in the world save, and two rolling backups are kept for safety.
 
-This template repository can be directly cloned to get you started with a new
-mod. Simply create a new repository cloned from this one, by following the
-instructions provided by [GitHub](https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-repository-from-a-template).
+## What's New in 1.5.0
+- Asynchronous, checksummed saves and automatic fallback to the latest healthy snapshot.
+- `/swap stats` shows aggregate usage, backups, and corruption counters.
+- Localised chat output (English with fallback) plus bundled German, Dutch, Russian, and Simplified Chinese packs.
+- Chat menu `/swap menu` with clickable toggles for gamemode sync and notifications.
 
-Once you have your clone, simply open the repository in the IDE of your choice. The usual recommendation for an IDE is either IntelliJ IDEA or Eclipse.
+## Commands
+| Command | Access | Description |
+|---------|--------|-------------|
+| `/swap` | Player | Toggle to the opposite profile (Survival ⇄ Creative).
+| `/swap <survival|creative>` | Player | Jump directly to a profile.
+| `/swap status` | Player | Show current profile and last-save timestamps (with backups).
+| `/swap menu` | Player | Clickable control panel for swaps, configs, and backup restore.
+| `/swap stats` | OP | Summaries of swaps, backups, and corruption detections (non-OPs get a friendly denial message).
+| `/swap restore <profile> <slot>` | OP | Promote backup slot `1` or `2` for the profile (applies immediately if it is the active profile).
+| `/swap config <gamemode|alerts|backupalerts|reload>` | OP | Toggle gamemode syncing, post-swap alerts, backup alerts, or reload config.
 
-If at any point you are missing libraries in your IDE, or you've run into problems you can
-run `gradlew --refresh-dependencies` to refresh the local cache. `gradlew clean` to reset everything 
-{this does not affect your code} and then start the process again.
+## Notifications & Backups
+- Every swap can optionally push a chat summary with distance travelled (toggle via `/swap config alerts`).
+- If a backup is auto-loaded or manually applied, both the acting player and console receive clear messages.
+- Saves are written off-thread with SHA-1 checksums and two rolling backups per profile (`world/tquickswap/<uuid>-*.nbt`).
 
-Mapping Names:
-============
-By default, the MDK is configured to use the official mapping names from Mojang for methods and fields 
-in the Minecraft codebase. These names are covered by a specific license. All modders should be aware of this
-license. For the latest license text, refer to the mapping file itself, or the reference copy here:
-https://github.com/NeoForged/NeoForm/blob/main/Mojang.md
+## Installation
+1. Drop the built jar from `build/libs` into your `mods/` folder on both client and server.
+2. Launch with **NeoForge 21.1.208** and Java **21**.
+3. Customise behaviour in `config/tquickswap-common.toml` or via `/swap config` in-game.
 
-Additional Resources: 
-==========
-Community Documentation: https://docs.neoforged.net/  
-NeoForged Discord: https://discord.neoforged.net/
-
-# TQuickSwap (NeoForge 1.21.1)
-
-Fast, minimal mod to toggle player gamemode. Built for **NeoForge** on **Minecraft 1.21.1**.
-
-## Requirements
-- **Java 21**
-- **Gradle Wrapper** (use the included `./gradlew`)
-- **NeoForge** dev environment
-- IDE: IntelliJ IDEA or VS Code with Java
-
-## Getting Started (Dev)
-
+## Developing
 ```bash
-# 1) Clone
-git clone https://github.com/COMPANYNAMEHERE/TQuickSwap.git
-cd TQuickSwap
+# Generate IntelliJ project files
+./gradlew idea
 
-# 2) Generate/refresh IDE files
-./gradlew idea        # IntelliJ
-# or
-./gradlew eclipse     # Eclipse (if you use it)
+# Run dev server (console accepts commands)
+./gradlew Server
 
-# 3) Run
-./gradlew runClient
-./gradlew runServer --args="--nogui"
-```
-
-## Build
-
-```bash
 # Build release jar
 ./gradlew build
-# Output: build/libs/<modid>-<version>.jar
 ```
+Outputs land in `build/libs/`.
 
-## Install (User/Server)
+## Localisation Support
+Built-in language packs live in `assets/tquickswap/lang/`:
+- `en_us` (default fallback)
+- `de_de`
+- `nl_nl`
+- `ru_ru`
+- `zh_cn`
 
-1. Download the built jar from `build/libs` or your Releases.
-2. Drop the jar into the `mods/` folder of a **NeoForge 1.21.1** client or server.
-3. Start the game or server.
-
-## Project Layout
-
-- `src/main/java` — Mod source
-- `src/main/resources` — Assets and `META-INF`
-- `src/main/templates` — `mods.toml` template expanded at build
-- `build.gradle` — Uses `net.neoforged.moddev` **2.0.107**, Java **21**, parchment mappings
-
-## Common Tasks
-
-```bash
-# Data generation (if used)
-./gradlew runData
-
-# Publish to local maven (optional)
-./gradlew publish
-```
-
-## Configuration
-
-- Java toolchain is pinned to **21** in `build.gradle`.
-- NeoForge version, mappings, and mod metadata are read from `gradle.properties`.
-- Run configs: `runClient`, `runServer`, `gameTestServer`, `runData`.
-
-## Compatibility
-
-- **Minecraft:** 1.21.1  
-- **Loader:** NeoForge
+If a player selects an unsupported locale, the server logs a warning and they seamlessly fall back to English.
 
 ## License
-
-Specify your license here. Example: MIT.
-
----
-
-_Notes:_  
-- Replace organization and links as needed.  
-- If you expose commands or keybinds for swapping gamemode, document them here.
+`mod_license` is currently set to **All Rights Reserved**. Update `gradle.properties` and this section if you adopt a different licence.

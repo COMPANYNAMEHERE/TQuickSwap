@@ -1,12 +1,18 @@
 package dev.tetralights.tquickswap;
 
 import com.mojang.logging.LogUtils;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
+import net.minecraft.network.chat.ClickEvent;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.HoverEvent;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
@@ -18,12 +24,14 @@ import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
 import org.slf4j.Logger;
 
+import dev.tetralights.tquickswap.LangHelper;
 public class ProfileOps {
     private static final Logger LOGGER = LogUtils.getLogger();
 
     public static void swapTo(ServerPlayer p, ProfileType target, DualStore store){
         // Determine current profile based on stored active profile, not gamemode
         ProfileType current = store.last(p.getUUID());
+        LangHelper.ensureLanguageAvailable(p.getServer(), p.getLanguage());
         // Measure distance as the teleport delta: before vs after apply
         double beforeX = p.getX();
         double beforeY = p.getY();
@@ -31,8 +39,14 @@ public class ProfileOps {
 
         // Persist current, perform swap
         store.save(p.getUUID(), current, capture(p));
-        CompoundTag targetNbt = store.load(p.getUUID(), target);
-        if(!targetNbt.isEmpty()) apply(p, targetNbt);
+        DualStore.LoadedProfile targetSnapshot = store.load(p.getUUID(), target);
+        CompoundTag targetNbt = targetSnapshot.data();
+        if(!targetSnapshot.isEmpty()) apply(p, targetNbt);
+        if (targetSnapshot.slot().isBackup() && !targetSnapshot.isEmpty() && Config.notifyOnBackupRestore()) {
+            p.sendSystemMessage(LangHelper.tr("message.tquickswap.backup_auto",
+                target.displayName(), targetSnapshot.slot().backupIndex())
+                .withStyle(ChatFormatting.GOLD));
+        }
         if (Config.switchGamemodeOnSwap()) {
             p.setGameMode(target==ProfileType.SURVIVAL ? GameType.SURVIVAL : GameType.CREATIVE);
         }
@@ -51,6 +65,20 @@ public class ProfileOps {
         LOGGER.info("[TQuickSwap] {} swapped {} -> {} | distance: {} blocks",
             p.getGameProfile().getName(), current, target,
             String.format(java.util.Locale.ROOT, "%.2f", dist));
+
+        SwapMetrics.recordSwap(current, target, dist, targetSnapshot.fromBackup());
+
+        if (Config.notifyOnSwap()) {
+            String distText = String.format(java.util.Locale.ROOT, "%.1f", dist);
+            MutableComponent summary = LangHelper.tr("message.tquickswap.swap_summary",
+                    target.displayName(), distText)
+                .withStyle(style -> style
+                    .withColor(ChatFormatting.AQUA)
+                    .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/swap menu"))
+                    .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
+                        LangHelper.tr("command.tquickswap.menu.open_hint"))));
+            p.sendSystemMessage(summary);
+        }
     }
 
     static CompoundTag capture(ServerPlayer p){

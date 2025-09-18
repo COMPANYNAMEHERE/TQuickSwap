@@ -86,7 +86,19 @@ neoForge {
             // Recommended logging level for the console
             // You can set various levels here.
             // Please read: https://stackoverflow.com/questions/2031163/when-to-use-the-different-log-levels
-            logLevel = org.slf4j.event.Level.DEBUG
+            logLevel = org.slf4j.event.Level.INFO
+
+            // Force Sponge Mixin to target the Java 21 class format used by Minecraft 1.21+
+            systemProperty 'mixin.env.compatibilityLevel', 'JAVA_21'
+
+            // Allow interactive console input when running via Gradle.
+            if (hasProperty('standardInput')) {
+                standardInput = System.in
+            }
+
+            // Use jline terminal so the server picks up console commands correctly.
+            jvmArgument '-Dterminal.jline=false'
+            jvmArgument '-Dterminal.ansi=true'
         }
     }
 
@@ -185,4 +197,15 @@ idea {
         downloadSources = true
         downloadJavadoc = true
     }
+}
+
+// Provide backwards-compatible aliases for legacy tasks invoked in docs/scripts.
+tasks.register('Server') {
+    group = 'mod development'
+    description = 'Alias for runServer (deprecated).'
+    dependsOn tasks.named('runServer')
+}
+
+tasks.named('runServer').configure {
+    standardInput = System.in
 }
