@@ -1,21 +1,12 @@
 package dev.tetralights.tquickswap;
 
 import com.mojang.logging.LogUtils;
-import net.minecraft.ChatFormatting;
-import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
-import net.minecraft.network.chat.ClickEvent;
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.HoverEvent;
-import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.network.chat.Style;
-
-import java.util.Set;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
@@ -31,26 +22,23 @@ public class ProfileOps {
     private static final Logger LOGGER = LogUtils.getLogger();
 
     public static void swapTo(ServerPlayer p, ProfileType target, DualStore store){
+        // Determine current profile based on stored active profile, not gamemode
         ProfileType current = store.last(p.getUUID());
-        LangHelper.ensureLanguageAvailable(p.getServer(), p.getLanguage());
+        // Measure distance as the teleport delta: before vs after apply
         double beforeX = p.getX();
         double beforeY = p.getY();
         double beforeZ = p.getZ();
 
+        // Persist current, perform swap
         store.save(p.getUUID(), current, capture(p));
-        DualStore.LoadedProfile targetSnapshot = store.load(p.getUUID(), target);
-        CompoundTag targetNbt = targetSnapshot.data();
-        if(!targetSnapshot.isEmpty()) apply(p, targetNbt);
-        if (targetSnapshot.slot().isBackup() && !targetSnapshot.isEmpty() && Config.notifyOnBackupRestore()) {
-            p.sendSystemMessage(LangHelper.tr("message.tquickswap.backup_auto",
-                target.displayName(), targetSnapshot.slot().backupIndex())
-                .withStyle(ChatFormatting.GOLD));
-        }
+        CompoundTag targetNbt = store.load(p.getUUID(), target);
+        if(!targetNbt.isEmpty()) apply(p, targetNbt);
         if (Config.switchGamemodeOnSwap()) {
             p.setGameMode(target==ProfileType.SURVIVAL ? GameType.SURVIVAL : GameType.CREATIVE);
         }
         store.save(p.getUUID(), target, capture(p));
 
+        // Compute distance traveled due to swap (teleport delta)
         double afterX = p.getX();
         double afterY = p.getY();
         double afterZ = p.getZ();
@@ -59,23 +47,10 @@ public class ProfileOps {
         double dz = afterZ - beforeZ;
         double dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
 
+        // Single concise log line with distance traveled
         LOGGER.info("[TQuickSwap] {} swapped {} -> {} | distance: {} blocks",
             p.getGameProfile().getName(), current, target,
             String.format(java.util.Locale.ROOT, "%.2f", dist));
-
-        SwapMetrics.recordSwap(current, target, dist, targetSnapshot.fromBackup());
-
-        if (Config.notifyOnSwap()) {
-            String distText = String.format(java.util.Locale.ROOT, "%.1f", dist);
-            MutableComponent summary = LangHelper.tr("message.tquickswap.swap_summary",
-                    target.displayName(), distText)
-                .withStyle(style -> style
-                    .withColor(ChatFormatting.AQUA)
-                    .withClickEvent(new ClickEvent.RunCommand("/swap menu"))
-                    .withHoverEvent(new HoverEvent.ShowText(
-                        LangHelper.tr("command.tquickswap.menu.open_hint"))));
-            p.sendSystemMessage(summary);
-        }
     }
 
     static CompoundTag capture(ServerPlayer p){
@@ -83,6 +58,7 @@ public class ProfileOps {
         n.putString("world", p.level().dimension().location().toString());
         n.putDouble("x", p.getX()); n.putDouble("y", p.getY()); n.putDouble("z", p.getZ());
         n.putFloat("yaw", p.getYRot()); n.putFloat("pitch", p.getXRot());
+        // Save current gamemode for profile-specific persistence when config is disabled
         try {
             var gm = p.gameMode.getGameModeForPlayer();
             if (gm != null) n.putString("gm", gm.getName());
@@ -90,18 +66,22 @@ public class ProfileOps {
 
         HolderLookup.Provider lookup = p.level().registryAccess();
 
+        // Inventory: entire inventory and ender chest
         n.put("inv", saveContainer(p.getInventory(), lookup));
         n.put("ender", saveContainer(p.getEnderChestInventory(), lookup));
 
+        // Experience/health/food
         n.putInt("level", p.experienceLevel); n.putFloat("xp", p.experienceProgress);
         n.putFloat("health", p.getHealth());
         n.putInt("food", p.getFoodData().getFoodLevel());
         n.putFloat("sat", p.getFoodData().getSaturationLevel());
 
+        // Effects
         ListTag effects = new ListTag();
         for (var e : p.getActiveEffects()) effects.add(saveEffect(e));
         n.put("effects", effects);
 
+        // Abilities
         n.putBoolean("allowFlight", p.getAbilities().mayfly);
         n.putBoolean("flying", p.getAbilities().flying);
         return n;
@@ -118,13 +98,14 @@ public class ProfileOps {
                 double z = getDoubleOr(n, "z", p.getZ());
                 float yaw = getFloatOr(n, "yaw", p.getYRot());
                 float pitch = getFloatOr(n, "pitch", p.getXRot());
-                p.teleportTo(world, x, y, z, Set.of(), yaw, pitch, false);
+                p.teleportTo(world, x, y, z, java.util.Set.of(), yaw, pitch, true);
             }
         }
 
+        // Inventory and ender chest
         HolderLookup.Provider lookup = p.level().registryAccess();
-        n.getList("inv").ifPresent(list -> loadContainer(p.getInventory(), list, lookup));
-        n.getList("ender").ifPresent(list -> loadContainer(p.getEnderChestInventory(), list, lookup));
+        if (n.contains("inv")) loadContainer(p.getInventory(), n.getList("inv").orElse(new ListTag()), lookup);
+        if (n.contains("ender")) loadContainer(p.getEnderChestInventory(), n.getList("ender").orElse(new ListTag()), lookup);
 
         p.experienceLevel = getIntOr(n, "level", p.experienceLevel);
         p.experienceProgress = getFloatOr(n, "xp", p.experienceProgress);
@@ -133,15 +114,19 @@ public class ProfileOps {
         p.getFoodData().setFoodLevel(getIntOr(n, "food", p.getFoodData().getFoodLevel()));
         p.getFoodData().setSaturation(getFloatOr(n, "sat", p.getFoodData().getSaturationLevel()));
 
+        // Effects
         p.removeAllEffects();
-        n.getList("effects").ifPresent(l -> {
+        if (n.contains("effects")) {
+            ListTag l = n.getList("effects").orElse(new ListTag());
+            HolderLookup.Provider lookup2 = p.level().registryAccess();
             for (int i=0; i<l.size(); i++) {
                 CompoundTag ct = l.getCompound(i).orElse(new CompoundTag());
-                MobEffectInstance inst = loadEffect(ct);
+                MobEffectInstance inst = loadEffect(ct, lookup2);
                 if (inst != null) p.addEffect(inst);
             }
-        });
+        }
 
+        // If config is disabled, restore saved gamemode (supports adventure/spectator)
         if (!Config.switchGamemodeOnSwap() && n.contains("gm")) {
             String gmName = n.getString("gm").orElse("");
             if (!gmName.isEmpty()) {
@@ -174,7 +159,7 @@ public class ProfileOps {
         for (int i = 0; i < c.getContainerSize(); i++) c.setItem(i, ItemStack.EMPTY);
         for (int i = 0; i < data.size(); i++) {
             CompoundTag t = data.getCompound(i).orElse(new CompoundTag());
-            int slot = t.contains("Slot") ? (t.getByte("Slot").orElse((byte) 0) & 255) : 0;
+            int slot = t.contains("Slot") ? ((t.getByte("Slot").orElse((byte)0)) & 255) : 0;
             ItemStack s = decodeItemStack(t, lookup);
             if (slot >= 0 && slot < c.getContainerSize()) c.setItem(slot, s);
         }
@@ -192,20 +177,21 @@ public class ProfileOps {
         return t;
     }
 
-    private static MobEffectInstance loadEffect(CompoundTag t) {
+    private static MobEffectInstance loadEffect(CompoundTag t, HolderLookup.Provider lookup) {
         String idStr = t.getString("id").orElse("");
         if (idStr.isEmpty()) return null;
         var rl = ResourceLocation.tryParse(idStr);
         if (rl == null) return null;
         var key = ResourceKey.create(Registries.MOB_EFFECT, rl);
-        var effOpt = BuiltInRegistries.MOB_EFFECT.getOptional(rl);
-        if (effOpt.isEmpty()) return null;
+        var registry = lookup.lookupOrThrow(Registries.MOB_EFFECT);
+        var holderOpt = registry.get(key);
+        if (holderOpt.isEmpty()) return null;
         int amp = getIntOr(t, "amplifier", 0);
         int dur = getIntOr(t, "duration", 0);
         boolean amb = getBooleanOr(t, "ambient", false);
         boolean vis = getBooleanOr(t, "visible", true);
         boolean show = getBooleanOr(t, "showIcon", true);
-        return new MobEffectInstance(net.minecraft.core.Holder.direct(effOpt.get()), dur, amp, amb, vis, show);
+        return new MobEffectInstance(holderOpt.get(), dur, amp, amb, vis, show);
     }
 
     private static CompoundTag encodeItemStack(ItemStack s, HolderLookup.Provider lookup) {
