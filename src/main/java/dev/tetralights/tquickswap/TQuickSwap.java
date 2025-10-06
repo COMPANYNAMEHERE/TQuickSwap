@@ -262,13 +262,16 @@ public class TQuickSwap {
         var last = store.last(p.getUUID());
         var snapshot = store.load(p.getUUID(), last);
         LangHelper.ensureLanguageAvailable(server, p.getLanguage());
-        if (!snapshot.isEmpty()) ProfileOps.apply(p, snapshot.data());
-        if (snapshot.slot().isBackup() && !snapshot.isEmpty() && Config.notifyOnBackupRestore()) {
+        boolean restoredData = !snapshot.isEmpty();
+        if (restoredData) ProfileOps.apply(p, snapshot.data());
+        if (snapshot.slot().isBackup() && restoredData && Config.notifyOnBackupRestore()) {
             p.sendSystemMessage(LangHelper.tr("message.tquickswap.backup_auto", last.displayName(), snapshot.slot().backupIndex()).withStyle(ChatFormatting.GOLD));
         }
-        // Respect config on login: align gamemode only when enabled
-        if (Config.switchGamemodeOnSwap()) {
+        // Respect config on login: align gamemode only when enabled and we actually restored data, otherwise we might clobber an operator-set mode on fresh installs.
+        if (Config.switchGamemodeOnSwap() && restoredData) {
             p.setGameMode(last == ProfileType.SURVIVAL ? net.minecraft.world.level.GameType.SURVIVAL : net.minecraft.world.level.GameType.CREATIVE);
+        } else if (Config.switchGamemodeOnSwap() && !restoredData) {
+            p.sendSystemMessage(LangHelper.tr("message.tquickswap.login_no_snapshot").withStyle(ChatFormatting.YELLOW));
         }
     }
 
