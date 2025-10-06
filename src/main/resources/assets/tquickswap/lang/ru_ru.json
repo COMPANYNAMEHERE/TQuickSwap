@@ -8,11 +8,12 @@
   "command.tquickswap.status.backups_creative": "Резерв (Творчество): #1 %s  |  #2 %s",
 
   "command.tquickswap.help.title": "TQuickSwap",
-  "command.tquickswap.help.summary": "Переключайтесь между профилями выживания и творчества.",
-  "command.tquickswap.help.usage": "Использование: /swap [survival|creative]",
-  "command.tquickswap.help.examples": "Примеры: /swap  или  /swap survival",
-  "command.tquickswap.help.config": "Настройка: /swap config (help)",
-  "command.tquickswap.help.menu": "Меню: /swap menu",
+  "command.tquickswap.help.swap": "Сменить профиль (/swap)",
+  "command.tquickswap.help.status": "Проверить статус (/swap status)",
+  "command.tquickswap.help.restore": "Восстановить резерв (/swap restore <профиль> <слот>)",
+  "command.tquickswap.help.menu": "Открыть меню (/swap menu)",
+  "command.tquickswap.help.config": "Настроить параметры (/swap config)",
+  "command.tquickswap.help.backups": "Резервы: слот #1 = самый свежий, слот #2 = более ранний снимок.",
 
   "command.tquickswap.config.title": "Настройки TQuickSwap",
   "command.tquickswap.config.usage": "Использование: /swap config help или /swap config <опция>",

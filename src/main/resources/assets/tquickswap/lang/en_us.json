@@ -8,11 +8,12 @@
   "command.tquickswap.status.backups_creative": "Backups (Creative): #1 %s  |  #2 %s",
 
   "command.tquickswap.help.title": "TQuickSwap",
-  "command.tquickswap.help.summary": "Swap between Survival and Creative profiles.",
-  "command.tquickswap.help.usage": "Usage: /swap [survival|creative]",
-  "command.tquickswap.help.examples": "Examples: /swap  or  /swap survival",
-  "command.tquickswap.help.config": "Config: /swap config (help)",
-  "command.tquickswap.help.menu": "Menu: /swap menu",
+  "command.tquickswap.help.swap": "Swap profiles (/swap)",
+  "command.tquickswap.help.status": "Check status (/swap status)",
+  "command.tquickswap.help.restore": "Restore backups (/swap restore <profile> <slot>)",
+  "command.tquickswap.help.menu": "Open menu (/swap menu)",
+  "command.tquickswap.help.config": "Configure options (/swap config)",
+  "command.tquickswap.help.backups": "Backups: slot #1 = most recent, slot #2 = older snapshot.",
 
   "command.tquickswap.config.title": "TQuickSwap Config",
   "command.tquickswap.config.usage": "Usage: /swap config help or /swap config <option>",

@@ -8,11 +8,12 @@
   "command.tquickswap.status.backups_creative": "Back-ups (Creatief): #1 %s  |  #2 %s",
 
   "command.tquickswap.help.title": "TQuickSwap",
-  "command.tquickswap.help.summary": "Schakel tussen overlevings- en creatieve profielen.",
-  "command.tquickswap.help.usage": "Gebruik: /swap [survival|creative]",
-  "command.tquickswap.help.examples": "Voorbeelden: /swap  of  /swap survival",
-  "command.tquickswap.help.config": "Configuratie: /swap config (help)",
-  "command.tquickswap.help.menu": "Menu: /swap menu",
+  "command.tquickswap.help.swap": "Profielen wisselen (/swap)",
+  "command.tquickswap.help.status": "Status bekijken (/swap status)",
+  "command.tquickswap.help.restore": "Back-up herstellen (/swap restore <profiel> <slot>)",
+  "command.tquickswap.help.menu": "Menu openen (/swap menu)",
+  "command.tquickswap.help.config": "Opties configureren (/swap config)",
+  "command.tquickswap.help.backups": "Back-ups: slot #1 = meest recente, slot #2 = oudere momentopname.",
 
   "command.tquickswap.config.title": "TQuickSwap-configuratie",
   "command.tquickswap.config.usage": "Gebruik: /swap config help of /swap config <optie>",
