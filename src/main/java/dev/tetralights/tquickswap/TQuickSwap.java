@@ -70,12 +70,12 @@ public class TQuickSwap {
             .then(Commands.literal("help").executes(ctx -> {
                 var src = ctx.getSource();
                 src.sendSuccess(() -> titleKey("command.tquickswap.help.title"), false);
-                src.sendSuccess(() -> infoLine("command.tquickswap.help.summary"), false);
-                src.sendSuccess(() -> infoLine("command.tquickswap.help.usage"), false);
-                src.sendSuccess(() -> infoLine("command.tquickswap.help.examples"), false);
-                src.sendSuccess(() -> link("Source ", "https://github.com/COMPANYNAMEHERE/TQuickSwap", LangHelper.tr("menu.tquickswap.button.click")), false);
-                src.sendSuccess(() -> infoLine("command.tquickswap.help.config"), false);
-                src.sendSuccess(() -> infoLine("command.tquickswap.help.menu"), false);
+                src.sendSuccess(() -> commandLink(LangHelper.tr("command.tquickswap.help.swap"), "/swap", ChatFormatting.GOLD), false);
+                src.sendSuccess(() -> commandLink(LangHelper.tr("command.tquickswap.help.status"), "/swap status", ChatFormatting.GOLD), false);
+                src.sendSuccess(() -> commandLink(LangHelper.tr("command.tquickswap.help.restore"), "/swap restore survival 1", ChatFormatting.GOLD), false);
+                src.sendSuccess(() -> commandLink(LangHelper.tr("command.tquickswap.help.menu"), "/swap menu", ChatFormatting.GOLD), false);
+                src.sendSuccess(() -> commandLink(LangHelper.tr("command.tquickswap.help.config"), "/swap config", ChatFormatting.GOLD), false);
+                src.sendSuccess(() -> infoLine("command.tquickswap.help.backups"), false);
                 return 1;
             }))
             .then(Commands.literal("menu").executes(ctx -> {

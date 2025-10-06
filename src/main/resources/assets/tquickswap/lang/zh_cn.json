@@ -8,11 +8,12 @@
   "command.tquickswap.status.backups_creative": "备份（创造）：#1 %s  |  #2 %s",
 
   "command.tquickswap.help.title": "TQuickSwap",
-  "command.tquickswap.help.summary": "在生存与创造档案之间切换。",
-  "command.tquickswap.help.usage": "用法：/swap [survival|creative]",
-  "command.tquickswap.help.examples": "示例：/swap 或 /swap survival",
-  "command.tquickswap.help.config": "配置：/swap config (help)",
-  "command.tquickswap.help.menu": "菜单：/swap menu",
+  "command.tquickswap.help.swap": "切换档案 (/swap)",
+  "command.tquickswap.help.status": "查看状态 (/swap status)",
+  "command.tquickswap.help.restore": "恢复备份 (/swap restore <档案> <槽位>)",
+  "command.tquickswap.help.menu": "打开菜单 (/swap menu)",
+  "command.tquickswap.help.config": "配置选项 (/swap config)",
+  "command.tquickswap.help.backups": "备份：槽位 #1 = 最新快照，槽位 #2 = 较旧快照。",
 
   "command.tquickswap.config.title": "TQuickSwap 配置",
   "command.tquickswap.config.usage": "用法：/swap config help 或 /swap config <选项>",
