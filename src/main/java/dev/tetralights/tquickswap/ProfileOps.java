@@ -16,6 +16,7 @@ import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.PlayerAdvancements;
+import net.minecraft.server.ServerAdvancementManager;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
@@ -116,7 +117,7 @@ public class ProfileOps {
         n.putBoolean("flying", p.getAbilities().flying);
 
         PlayerAdvancements adv = p.getAdvancements();
-        CompoundTag advData = adv.save(new CompoundTag());
+        CompoundTag advData = adv.save();
         if (!advData.isEmpty()) n.put(ADVANCEMENTS_KEY, advData);
         return n;
     }
@@ -162,8 +163,12 @@ public class ProfileOps {
         if (n.contains(ADVANCEMENTS_KEY, Tag.TAG_COMPOUND)) {
             PlayerAdvancements adv = p.getAdvancements();
             CompoundTag advData = n.getCompound(ADVANCEMENTS_KEY);
-            adv.load(advData);
-            adv.flushDirty(p);
+            var server = p.getServer();
+            if (server != null) {
+                ServerAdvancementManager manager = server.getAdvancements();
+                adv.load(manager, advData);
+                adv.flushDirty(p);
+            }
         }
 
         // If config is disabled, restore saved gamemode (supports adventure/spectator)
