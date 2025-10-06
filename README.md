@@ -24,10 +24,24 @@ TQuickSwap is a lightweight **NeoForge** mod for Minecraft **1.21.1** that lets 
 - If a backup is auto-loaded or manually applied, both the acting player and console receive clear messages.
 - Saves are written off-thread with SHA-1 checksums and two rolling backups per profile (`world/tquickswap/<uuid>-*.nbt`).
 
-## Installation
+<details>
+<summary><strong>Install</strong></summary>
+
 1. Drop the built jar from `build/libs` into your `mods/` folder on both client and server.
-2. Launch with **NeoForge 21.1.208** and Java **21**.
-3. Customise behaviour in `config/tquickswap-common.toml` or via `/swap config` in-game.
+2. Launch with **NeoForge 21.1.208** (or newer) and Java **21** on every instance.
+3. Ensure `config/tquickswap-common.toml` is present on both sides—defaults generate on first launch, but keep them in sync if you customise anything.
+4. Customise behaviour in `config/tquickswap-common.toml` or via `/swap config` in-game.
+
+</details>
+
+<details>
+<summary><strong>Uninstall</strong></summary>
+
+1. Remove the TQuickSwap jar from the `mods/` folder on both client and server, then restart.
+2. The next load will resume with whichever profile was active last, so make sure you're comfortable committing to that inventory and state before you pull the mod.
+3. Optional: clear out the generated config if you no longer need it. Backups live in `world/tquickswap/`; keep or restore them manually if you want to recover a profile later.
+
+</details>
 
 ## Developing
 ```bash
