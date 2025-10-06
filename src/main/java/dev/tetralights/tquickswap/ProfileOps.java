@@ -15,6 +15,7 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.PlayerAdvancements;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
@@ -27,6 +28,7 @@ import org.slf4j.Logger;
 import dev.tetralights.tquickswap.LangHelper;
 public class ProfileOps {
     private static final Logger LOGGER = LogUtils.getLogger();
+    private static final String ADVANCEMENTS_KEY = "advancements";
 
     public static void swapTo(ServerPlayer p, ProfileType target, DualStore store){
         // Determine current profile based on stored active profile, not gamemode
@@ -112,6 +114,10 @@ public class ProfileOps {
         // Abilities
         n.putBoolean("allowFlight", p.getAbilities().mayfly);
         n.putBoolean("flying", p.getAbilities().flying);
+
+        PlayerAdvancements adv = p.getAdvancements();
+        CompoundTag advData = adv.save(new CompoundTag());
+        if (!advData.isEmpty()) n.put(ADVANCEMENTS_KEY, advData);
         return n;
     }
 
@@ -151,6 +157,13 @@ public class ProfileOps {
                 MobEffectInstance inst = loadEffect(ct);
                 if (inst != null) p.addEffect(inst);
             }
+        }
+
+        if (n.contains(ADVANCEMENTS_KEY, Tag.TAG_COMPOUND)) {
+            PlayerAdvancements adv = p.getAdvancements();
+            CompoundTag advData = n.getCompound(ADVANCEMENTS_KEY);
+            adv.load(advData);
+            adv.flushDirty(p);
         }
 
         // If config is disabled, restore saved gamemode (supports adventure/spectator)
