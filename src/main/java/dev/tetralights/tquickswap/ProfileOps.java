@@ -119,17 +119,17 @@ public class ProfileOps {
 
         PlayerAdvancements adv = p.getAdvancements();
         PlayerAdvancements.Data advData = adv.asData();
-        PlayerAdvancements.Data.CODEC.encodeStart(NbtOps.INSTANCE, advData)
-            .resultOrPartial(err -> LOGGER.error("Failed to encode advancements for {}: {}", p.getGameProfile().getName(), err))
-            .filter(tag -> {
-                if (tag instanceof CompoundTag) {
-                    return true;
-                }
-                LOGGER.error("Unexpected advancements payload type {} for {}", tag.getClass().getName(), p.getGameProfile().getName());
-                return false;
-            })
-            .map(tag -> (CompoundTag) tag)
-            .ifPresent(advTag -> n.put(ADVANCEMENTS_KEY, advTag));
+        if (advData != null) {
+            PlayerAdvancements.Data.CODEC.encodeStart(NbtOps.INSTANCE, advData)
+                .resultOrPartial(err -> LOGGER.error("Failed to encode advancements for {}: {}", p.getGameProfile().getName(), err))
+                .ifPresent(tag -> {
+                    if (tag instanceof CompoundTag advTag) {
+                        n.put(ADVANCEMENTS_KEY, advTag);
+                    } else {
+                        LOGGER.error("Unexpected advancements payload type {} for {}", tag.getClass().getName(), p.getGameProfile().getName());
+                    }
+                });
+        }
         return n;
     }
 
@@ -181,7 +181,7 @@ public class ProfileOps {
                     .resultOrPartial(err -> LOGGER.error("Failed to decode advancements for {}: {}", p.getGameProfile().getName(), err))
                     .ifPresent(data -> {
                         adv.applyFrom(manager, data);
-                        adv.flushDirty(p, true);
+                        adv.flushDirty(p);
                     });
             }
         }
