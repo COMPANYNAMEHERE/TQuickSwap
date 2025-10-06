@@ -7,6 +7,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
@@ -15,8 +16,10 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.ServerAdvancementManager;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.players.PlayerAdvancements;
 import net.minecraft.world.Container;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.item.ItemStack;
@@ -27,6 +30,7 @@ import org.slf4j.Logger;
 import dev.tetralights.tquickswap.LangHelper;
 public class ProfileOps {
     private static final Logger LOGGER = LogUtils.getLogger();
+    private static final String ADVANCEMENTS_KEY = "advancements";
 
     public static void swapTo(ServerPlayer p, ProfileType target, DualStore store){
         // Determine current profile based on stored active profile, not gamemode
@@ -112,6 +116,20 @@ public class ProfileOps {
         // Abilities
         n.putBoolean("allowFlight", p.getAbilities().mayfly);
         n.putBoolean("flying", p.getAbilities().flying);
+
+        PlayerAdvancements adv = p.getAdvancements();
+        PlayerAdvancements.Data advData = adv.asData();
+        PlayerAdvancements.Data.CODEC.encodeStart(NbtOps.INSTANCE, advData)
+            .resultOrPartial(err -> LOGGER.error("Failed to encode advancements for {}: {}", p.getGameProfile().getName(), err))
+            .filter(tag -> {
+                if (tag instanceof CompoundTag) {
+                    return true;
+                }
+                LOGGER.error("Unexpected advancements payload type {} for {}", tag.getClass().getName(), p.getGameProfile().getName());
+                return false;
+            })
+            .map(tag -> (CompoundTag) tag)
+            .ifPresent(advTag -> n.put(ADVANCEMENTS_KEY, advTag));
         return n;
     }
 
@@ -150,6 +168,21 @@ public class ProfileOps {
                 CompoundTag ct = l.getCompound(i);
                 MobEffectInstance inst = loadEffect(ct);
                 if (inst != null) p.addEffect(inst);
+            }
+        }
+
+        if (n.contains(ADVANCEMENTS_KEY, Tag.TAG_COMPOUND)) {
+            var server = p.getServer();
+            if (server != null) {
+                CompoundTag advTag = n.getCompound(ADVANCEMENTS_KEY);
+                PlayerAdvancements adv = p.getAdvancements();
+                ServerAdvancementManager manager = server.getAdvancements();
+                PlayerAdvancements.Data.CODEC.parse(NbtOps.INSTANCE, advTag)
+                    .resultOrPartial(err -> LOGGER.error("Failed to decode advancements for {}: {}", p.getGameProfile().getName(), err))
+                    .ifPresent(data -> {
+                        adv.applyFrom(manager, data);
+                        adv.flushDirty(p, true);
+                    });
             }
         }
 
