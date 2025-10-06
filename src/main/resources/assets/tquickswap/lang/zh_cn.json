@@ -62,6 +62,7 @@
   "message.tquickswap.swap_menu_hint": "点击打开 /swap menu",
   "message.tquickswap.backup_auto": "TQuickSwap 从备份 #%s 恢复了 %s 档案",
   "message.tquickswap.backup_manual": "TQuickSwap 已将备份 #%s 应用于 %s 档案。",
+  "message.tquickswap.login_no_snapshot": "TQuickSwap 已安装但尚无保存数据，请执行 /swap 进行初始化。",
   "message.tquickswap.never": "从未",
 
   "message.tquickswap.enabled": "已启用",

@@ -62,6 +62,7 @@
   "message.tquickswap.swap_menu_hint": "Klik om /swap menu te openen",
   "message.tquickswap.backup_auto": "TQuickSwap heeft %s-profiel uit backup #%s hersteld",
   "message.tquickswap.backup_manual": "TQuickSwap paste backup #%s toe voor %s-profiel.",
+  "message.tquickswap.login_no_snapshot": "TQuickSwap is geïnstalleerd maar heeft nog geen opgeslagen gegevens; voer /swap één keer uit om te initialiseren.",
   "message.tquickswap.never": "nooit",
 
   "message.tquickswap.enabled": "ingeschakeld",
