@@ -2,12 +2,14 @@ package dev.tetralights.tquickswap;
 
 import com.mojang.logging.LogUtils;
 import net.minecraft.ChatFormatting;
+import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtOps;
+import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
@@ -118,17 +120,26 @@ public class ProfileOps {
         n.putBoolean("flying", p.getAbilities().flying);
 
         PlayerAdvancements adv = p.getAdvancements();
-        PlayerAdvancements.Data advData = adv.asData();
+        var advData = adv.data();
         if (advData != null) {
-            PlayerAdvancements.Data.CODEC.encodeStart(NbtOps.INSTANCE, advData)
-                .resultOrPartial(err -> LOGGER.error("Failed to encode advancements for {}: {}", p.getGameProfile().getName(), err))
-                .ifPresent(tag -> {
-                    if (tag instanceof CompoundTag advTag) {
-                        n.put(ADVANCEMENTS_KEY, advTag);
-                    } else {
-                        LOGGER.error("Unexpected advancements payload type {} for {}", tag.getClass().getName(), p.getGameProfile().getName());
-                    }
-                });
+            var progressMap = advData.map();
+            CompoundTag advRoot = new CompoundTag();
+            ListTag entries = new ListTag();
+            progressMap.forEach((id, progress) -> {
+                if (!progress.hasProgress()) {
+                    return;
+                }
+                ListTag completed = new ListTag();
+                for (String criterion : progress.getCompletedCriteria()) {
+                    completed.add(StringTag.valueOf(criterion));
+                }
+                CompoundTag entry = new CompoundTag();
+                entry.putString("id", id.toString());
+                entry.put("completed", completed);
+                entries.add(entry);
+            });
+            advRoot.put("entries", entries);
+            n.put(ADVANCEMENTS_KEY, advRoot);
         }
         return n;
     }
@@ -175,14 +186,36 @@ public class ProfileOps {
             var server = p.getServer();
             if (server != null) {
                 CompoundTag advTag = n.getCompound(ADVANCEMENTS_KEY);
-                PlayerAdvancements adv = p.getAdvancements();
-                ServerAdvancementManager manager = server.getAdvancements();
-                PlayerAdvancements.Data.CODEC.parse(NbtOps.INSTANCE, advTag)
-                    .resultOrPartial(err -> LOGGER.error("Failed to decode advancements for {}: {}", p.getGameProfile().getName(), err))
-                    .ifPresent(data -> {
-                        adv.applyFrom(manager, data);
-                        adv.flushDirty(p);
-                    });
+                if (advTag.contains("entries", Tag.TAG_LIST)) {
+                    ListTag entries = advTag.getList("entries", Tag.TAG_COMPOUND);
+                    PlayerAdvancements adv = p.getAdvancements();
+                    ServerAdvancementManager manager = server.getAdvancements();
+                    adv.clearCriteria();
+                    adv.reload(manager);
+                    for (int i = 0; i < entries.size(); i++) {
+                        CompoundTag entry = entries.getCompound(i);
+                        ResourceLocation id = ResourceLocation.tryParse(entry.getString("id"));
+                        if (id == null) {
+                            continue;
+                        }
+                        AdvancementHolder holder = manager.getAdvancement(id);
+                        if (holder == null) {
+                            LOGGER.warn("Skipping missing advancement {} while restoring profile for {}", id, p.getGameProfile().getName());
+                            continue;
+                        }
+                        ListTag completed = entry.getList("completed", Tag.TAG_STRING);
+                        for (int j = 0; j < completed.size(); j++) {
+                            String criterion = completed.getString(j);
+                            if (!criterion.isEmpty()) {
+                                adv.grantCriterion(holder, criterion);
+                            }
+                        }
+                    }
+                    adv.flushDirty(p);
+                    adv.save();
+                } else {
+                    LOGGER.warn("Skipping advancement restore for {} due to unsupported data format", p.getGameProfile().getName());
+                }
             }
         }
 
