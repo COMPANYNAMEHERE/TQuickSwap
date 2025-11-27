@@ -39,9 +39,10 @@ Permissions:
 - Fabric API: 0.133.4+1.21.8
 
 ## Build & Run
-- Build: `./gradlew clean build`
-- Dev server: `./gradlew runServer` (accept EULA in `run/eula.txt` on first run)
-- Dev client: `./gradlew runClient`
+- Build everything: `./gradlew clean buildAll` (builds Fabric and NeoForge)
+- Fabric dev server: `./gradlew :fabric:runServer` (accept EULA in `run/eula.txt` on first run)
+- Fabric dev client: `./gradlew :fabric:runClient`
+- NeoForge dev client/server: `./gradlew :neoforge:runClient` / `./gradlew :neoforge:runServer`
 
 ## Troubleshooting
 - Permissions: Make sure your player is OP for `/swap config …`.
