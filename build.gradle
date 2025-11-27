@@ -1,32 +1,17 @@
 plugins {
-    id 'fabric-loom' version '1.10.1'
-    id 'java-library'
-    id 'maven-publish'
+    id 'base'
 }
 
 group = 'dev.tetralights'
 version = '1.4.1'
 
-repositories {
-    maven { url = 'https://maven.fabricmc.net/' }
-    mavenCentral()
-}
-
-loom {
-    splitEnvironmentSourceSets()
-}
-
-dependencies {
-    minecraft 'com.mojang:minecraft:1.21.8'
-    // Use Mojang (official) mappings only
-    mappings loom.officialMojangMappings()
-    modImplementation 'net.fabricmc:fabric-loader:0.16.13'
-    modImplementation 'net.fabricmc.fabric-api:fabric-api:0.133.4+1.21.8'
-
-}
-
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
+subprojects {
+    repositories {
+        mavenCentral()
+        maven { url = 'https://maven.fabricmc.net/' }
     }
+}
+
+tasks.register('buildAll') {
+    dependsOn subprojects.collect { it.tasks.matching { t -> t.name == 'build' } }
 }

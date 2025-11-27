@@ -1,0 +1,33 @@
+plugins {
+    id 'net.neoforged.gradle.userdev' version '7.0.152'
+    id 'java-library'
+    id 'maven-publish'
+}
+
+group = maven_group
+version = mod_version
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation "net.neoforged:neoforge:${minecraft_version}-beta"
+}
+
+sourceSets {
+    main {
+        java { srcDir 'src/main/java' }
+        resources { srcDir 'src/main/resources' }
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.release = 21
+}

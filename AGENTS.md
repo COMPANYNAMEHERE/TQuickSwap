@@ -3,7 +3,7 @@ TQuickSwap — Agent Guide
 Overview
 - Purpose: Maintain two separate player profiles (Survival/Creative) and swap them via `/swap`.
 - Storage: Per-player compressed NBT under `world/tquickswap/` (e.g., `<uuid>-survival.nbt`).
-- Entrypoint: `dev.tetralights.tquickswap.TQuickSwapMod` in `src/main/java`.
+- Entrypoints: `dev.tetralights.tquickswap.TQuickSwapMod` in `fabric/src/main/java` (Fabric) and `neoforge/src/main/java` (NeoForge).
 - Command: `/swap [survival|creative]`.
 
 Versions
@@ -15,9 +15,10 @@ Versions
 - Java: JDK 21 (via toolchain in build.gradle)
 
 Build & Run
-- Build: `./gradlew clean build`
-- Dev server: `./gradlew runServer` (accept EULA in `run/eula.txt` on first run)
-- Dev client: `./gradlew runClient`
+- Build all loaders: `./gradlew clean buildAll` (Fabric + NeoForge)
+- Fabric dev server: `./gradlew :fabric:runServer` (accept EULA in `run/eula.txt` on first run)
+- Fabric dev client: `./gradlew :fabric:runClient`
+- NeoForge dev server/client: `./gradlew :neoforge:runServer` / `./gradlew :neoforge:runClient`
 - Join: Connect your Fabric 1.21.8 client to `localhost:25565` and use `/swap`.
 
 Key Files

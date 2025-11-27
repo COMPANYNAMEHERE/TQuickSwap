@@ -1,7 +1,7 @@
 package dev.tetralights.tquickswap;
 
 import com.mojang.logging.LogUtils;
-import net.fabricmc.loader.api.FabricLoader;
+import net.neoforged.fml.loading.FMLPaths;
 import org.slf4j.Logger;
 
 import java.io.IOException;
@@ -24,7 +24,7 @@ public final class Config {
             if (c != null) return c;
             boolean def = true;
             boolean val = def;
-            Path dir = FabricLoader.getInstance().getConfigDir();
+            Path dir = FMLPaths.CONFIGDIR.get();
             Path file = dir.resolve(FILE_NAME);
             try {
                 if (!Files.exists(file)) {
@@ -59,7 +59,7 @@ public final class Config {
     }
 
     public static synchronized boolean setSwitchGamemodeOnSwap(boolean value) {
-        Path dir = FabricLoader.getInstance().getConfigDir();
+        Path dir = FMLPaths.CONFIGDIR.get();
         Path file = dir.resolve(FILE_NAME);
         try {
             writeFile(file, value);

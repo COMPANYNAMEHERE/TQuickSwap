@@ -1,0 +1,19 @@
+modLoader="javafml"
+loaderVersion="[2,)"
+license="MIT"
+issueTrackerURL="https://github.com/COMPANYNAMEHERE/TQuickSwap/issues"
+showAsResourcePack=false
+
+[[mods]]
+modId="tquickswap"
+version="${mod_version}"
+displayName="TQuickSwap"
+authors="TetraLights"
+description='''Swap between Survival and Creative profiles with a single command.'''
+
+[[dependencies.tquickswap]]
+modId="minecraft"
+mandatory=true
+versionRange="[${minecraft_version}]"
+ordering="NONE"
+side="BOTH"
