@@ -60,6 +60,18 @@ download_java() {
   return 1
 }
 
+select_action() {
+  while true; do
+    printf 'Choose action (run=1, build=2):\n  1) Run client\n  2) Build loader\n' >&2
+    read -rp "Select run(1) or build(2): " choice
+    case "$choice" in
+      1) echo "run"; return ;;
+      2) echo "build"; return ;;
+      *) printf 'Invalid selection, try again.\n' >&2 ;;
+    esac
+  done
+}
+
 select_loader() {
   while true; do
     printf 'Choose loader to run (fabric=1, neoforge=2):\n  1) Fabric\n  2) NeoForge\n' >&2
@@ -81,13 +93,22 @@ if [[ -z "$JAVA_HOME_PATH" ]]; then
   exit 1
 fi
 
+ACTION="$(select_action)"
 LOADER="$(select_loader)"
-TARGET_DIR="$REPO_ROOT/$LOADER/run"
-rm -rf "$TARGET_DIR"
-mkdir -p "$TARGET_DIR"
-
-echo "Using Java at $JAVA_HOME_PATH"
-echo "Launching $LOADER client (run folder cleaned: $TARGET_DIR)..."
 
 cd "$REPO_ROOT"
-env JAVA_HOME="$JAVA_HOME_PATH" ./gradlew ":$LOADER:runClient"
+
+if [[ "$ACTION" == "run" ]]; then
+  TARGET_DIR="$REPO_ROOT/$LOADER/run"
+  rm -rf "$TARGET_DIR"
+  mkdir -p "$TARGET_DIR"
+  echo "Using Java at $JAVA_HOME_PATH"
+  echo "Launching $LOADER client (run folder cleaned: $TARGET_DIR)..."
+  env JAVA_HOME="$JAVA_HOME_PATH" ./gradlew ":$LOADER:runClient"
+else
+  echo "Using Java at $JAVA_HOME_PATH"
+  echo "Building $LOADER loader..."
+  env JAVA_HOME="$JAVA_HOME_PATH" ./gradlew ":$LOADER:build"
+  echo "Build completed for $LOADER."
+  echo "Built artifacts live in $REPO_ROOT/$LOADER/build/libs/"
+fi

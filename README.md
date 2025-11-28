@@ -50,6 +50,7 @@ This script:
 - Cleans the corresponding `run/` directory
 - Ensures a Java 21 runtime is available (downloads Temurin 21 under `/tmp/jdks` if needed)
 - Starts the appropriate `runClient` Gradle task
+- Produces loader-specific artifacts under `<loader>/build/libs/` when you build via the script or manually (e.g., `fabric/build/libs/tquickswap-fabric-1.4.1.jar` and `neoforge/build/libs/tquickswap-neoforge-1.4.1.jar`).
 
 <details>
 <summary>Manual commands (if <code>run-loader.sh</code> doesn&apos;t work)</summary>

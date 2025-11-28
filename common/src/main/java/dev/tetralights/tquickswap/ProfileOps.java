@@ -17,10 +17,12 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
+import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
+import net.minecraft.core.NonNullList;
 import org.slf4j.Logger;
 
 public class ProfileOps {
@@ -120,13 +122,11 @@ public class ProfileOps {
         }
 
         HolderLookup.Provider lookup = p.level().registryAccess();
-        ListTag inv = n.getList("inv", Tag.TAG_COMPOUND);
-        if (!inv.isEmpty()) {
-            loadContainer(p.getInventory(), inv, lookup);
+        if (n.contains("inv", Tag.TAG_COMPOUND)) {
+            loadContainer(p.getInventory(), n.getCompound("inv"), lookup);
         }
-        ListTag ender = n.getList("ender", Tag.TAG_COMPOUND);
-        if (!ender.isEmpty()) {
-            loadContainer(p.getEnderChestInventory(), ender, lookup);
+        if (n.contains("ender", Tag.TAG_COMPOUND)) {
+            loadContainer(p.getEnderChestInventory(), n.getCompound("ender"), lookup);
         }
 
         p.experienceLevel = getIntOr(n, "level", p.experienceLevel);
@@ -161,26 +161,21 @@ public class ProfileOps {
         p.onUpdateAbilities();
     }
 
-    private static ListTag saveContainer(Container c, HolderLookup.Provider lookup) {
-        ListTag out = new ListTag();
+    private static CompoundTag saveContainer(Container c, HolderLookup.Provider lookup) {
+        NonNullList<ItemStack> items = NonNullList.withSize(c.getContainerSize(), ItemStack.EMPTY);
         for (int i = 0; i < c.getContainerSize(); i++) {
-            ItemStack s = c.getItem(i);
-            if (!s.isEmpty()) {
-                CompoundTag t = encodeItemStack(s, lookup);
-                t.putByte("Slot", (byte) i);
-                out.add(t);
-            }
+            items.set(i, c.getItem(i).copy());
         }
-        return out;
+        CompoundTag tag = new CompoundTag();
+        ContainerHelper.saveAllItems(tag, items, lookup);
+        return tag;
     }
 
-    private static void loadContainer(Container c, ListTag data, HolderLookup.Provider lookup) {
-        for (int i = 0; i < c.getContainerSize(); i++) c.setItem(i, ItemStack.EMPTY);
-        for (int i = 0; i < data.size(); i++) {
-            CompoundTag t = data.getCompound(i);
-            int slot = t.contains("Slot") ? (t.getByte("Slot") & 255) : 0;
-            ItemStack s = decodeItemStack(t, lookup);
-            if (slot >= 0 && slot < c.getContainerSize()) c.setItem(slot, s);
+    private static void loadContainer(Container c, CompoundTag data, HolderLookup.Provider lookup) {
+        NonNullList<ItemStack> items = NonNullList.withSize(c.getContainerSize(), ItemStack.EMPTY);
+        ContainerHelper.loadAllItems(data, items, lookup);
+        for (int i = 0; i < c.getContainerSize(); i++) {
+            c.setItem(i, items.get(i));
         }
     }
 
