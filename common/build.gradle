@@ -4,7 +4,7 @@ plugins {
 }
 
 neoForge {
-    neoFormVersion = project.findProperty('neoform_version') ?: '1.21.1-20240808.144430'
+    neoFormVersion = project.findProperty('neoform_version') ?: '1.21.10-20241111.144430'
     parchment {
         minecraftVersion = project.findProperty('parchment_minecraft') ?: '1.21'
         mappingsVersion = project.findProperty('parchment_version') ?: '2024.06.23'

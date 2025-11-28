@@ -2,7 +2,7 @@
 
 TQuickSwap lets players maintain two separate in-game profiles (Survival and Creative) and swap between them with a command. Each profile stores inventory, ender chest, XP, health/food, potion effects, abilities, and position/world.
 
-Current version: 1.4.1 (Fabric/NeoForge 1.21.1)
+Current version: 1.5.1 (Fabric/NeoForge 1.21.10)
 
 ## Features
 - Dual profiles: separate Survival and Creative states
@@ -34,9 +34,9 @@ Permissions:
 - Last profile flag: `world/tquickswap/<uuid>-last.nbt`
 
 ## Compatibility
-- Minecraft: 1.21.1
-- Fabric Loader: 0.16.14
-- Fabric API: 0.107.0+1.21.1
+- Minecraft: 1.21.10
+- Fabric Loader: 0.16.17
+- Fabric API: 0.110.0+1.21.10
 - NeoForge: 21.1.215 (moddev-gradle 2.0.120)
 
 ## Build & Run
@@ -50,7 +50,7 @@ This script:
 - Cleans the corresponding `run/` directory
 - Ensures a Java 21 runtime is available (downloads Temurin 21 under `/tmp/jdks` if needed)
 - Starts the appropriate `runClient` Gradle task
-- Produces loader-specific artifacts under `<loader>/build/libs/` when you build via the script or manually (e.g., `fabric/build/libs/tquickswap-fabric-1.4.1.jar` and `neoforge/build/libs/tquickswap-neoforge-1.4.1.jar`).
+- Produces loader-specific artifacts under `<loader>/build/libs/` when you build via the script or manually (e.g., `fabric/build/libs/tquickswap-fabric-1.5.1.jar` and `neoforge/build/libs/tquickswap-neoforge-1.5.1.jar`).
 
 <details>
 <summary>Manual commands (if <code>run-loader.sh</code> doesn&apos;t work)</summary>

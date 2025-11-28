@@ -22,6 +22,6 @@ side = "BOTH"
 [[dependencies.tquickswap]]
 modId = "minecraft"
 type = "required"
-versionRange = "[1.21,1.22)"
+versionRange = "[1.21.10,1.22)"
 ordering = "NONE"
 side = "BOTH"
