@@ -9,10 +9,10 @@ Overview
 - Command: `/swap [survival|creative]`.
 
 Versions
-- Minecraft: 1.21.1
-- Fabric Loader: 0.16.14
-- Fabric API: 0.107.0+1.21.1
-- NeoForge: 21.1.215 (moddev-gradle 2.0.120 + neoform 1.21.1-20240808.144430)
+- Minecraft: 1.21.10
+- Fabric Loader: 0.16.17
+- Fabric API: 0.110.0+1.21.10
+- NeoForge: 21.1.215 (moddev-gradle 2.0.120 + neoform 1.21.10-20241111.144430)
 - Fabric Loom: 1.10.1
 - Gradle: 8.12 (wrapper)
 - Java: JDK 21 (toolchain in each module)
@@ -23,7 +23,7 @@ Versions
 - All builds (clean): `./gradlew clean build`
 - Fabric dev server/client: `./gradlew :fabric:runServer`, `./gradlew :fabric:runClient`
 - NeoForge dev server/client: `./gradlew :neoforge:runServer`, `./gradlew :neoforge:runClient`
-- Join: Connect your Fabric 1.21.8 client to `localhost:25565` and use `/swap`.
+- Join: Connect your Fabric 1.21.10 client to `localhost:25565` and use `/swap`.
 
 Key Files
 - Mod entry: `fabric/src/main/java/dev/tetralights/tquickswap/TQuickSwapMod.java` (Fabric)
@@ -45,7 +45,7 @@ Common Tasks
 - Verify Java 21: `./gradlew --version`
 
 Conventions
-- Mojang mappings (official) for 1.21.1 via Loom.
+- Mojang mappings (official) for 1.21.10 via Loom.
 - No example mod residue (com.example.* removed). If you still see `fabric/src/main/resources/assets/modid/icon.png`, it’s unused; safe to delete.
 
 Release

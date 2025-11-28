@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## TQuickSwap 1.5.1 (1.21.10)
+- Bump the mod release version to 1.5.1 for the 1.21.10 Fabric and NeoForge builds.
+- Keep release notes and metadata aligned across both loaders.
+
+## TQuickSwap 1.4.2 (1.21.10)
+- Update Fabric and NeoForge builds to Minecraft 1.21.10 (Fabric Loader 0.16.17, Fabric API 0.110.0+1.21.10).
+
 ## TQuickSwap 1.4.1 (1.21.8)
 - Port latest NeoForge logic to Fabric 1.21.8.
 - Distance metric now measures teleport delta (position before vs after apply).
