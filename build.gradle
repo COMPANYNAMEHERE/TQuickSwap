@@ -1,32 +1,30 @@
 plugins {
-    id 'fabric-loom' version '1.10.1'
-    id 'java-library'
-    id 'maven-publish'
+    id 'base'
 }
 
-group = 'dev.tetralights'
-version = '1.4.1'
-
-repositories {
-    maven { url = 'https://maven.fabricmc.net/' }
-    mavenCentral()
+ext {
+    modVersion = project.findProperty('mod_version') ?: '0.0.0'
+    archivesBaseName = project.findProperty('archives_base_name') ?: 'tquickswap'
+    mavenGroup = project.findProperty('maven_group') ?: 'dev.tetralights'
+    minecraftVersion = project.findProperty('minecraft_version') ?: '1.21.1'
+    fabricLoaderVersion = project.findProperty('fabric_loader_version') ?: '0.16.14'
+    fabricApiVersion = project.findProperty('fabric_api_version') ?: '0.107.0+1.21.1'
+    loomVersion = project.findProperty('loom_version') ?: '1.10.1'
+    neoforgeVersion = project.findProperty('neoforge_version') ?: '21.1.215'
+    moddevVersion = project.findProperty('moddev_version') ?: '0.1.110'
 }
 
-loom {
-    splitEnvironmentSourceSets()
-}
+allprojects {
+    group = rootProject.ext.mavenGroup
+    version = rootProject.ext.modVersion
 
-dependencies {
-    minecraft 'com.mojang:minecraft:1.21.8'
-    // Use Mojang (official) mappings only
-    mappings loom.officialMojangMappings()
-    modImplementation 'net.fabricmc:fabric-loader:0.16.13'
-    modImplementation 'net.fabricmc.fabric-api:fabric-api:0.133.4+1.21.8'
+    repositories {
+        maven { url = 'https://maven.fabricmc.net/' }
+        maven { url = 'https://maven.neoforged.net/releases' }
+        mavenCentral()
+    }
 
-}
-
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
+    tasks.withType(JavaCompile).configureEach {
+        options.encoding = 'UTF-8'
     }
 }

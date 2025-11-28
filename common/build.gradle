@@ -1,0 +1,22 @@
+plugins {
+    id 'java-library'
+    id 'net.neoforged.moddev' version '2.0.120'
+}
+
+neoForge {
+    neoFormVersion = project.findProperty('neoform_version') ?: '1.21.1-20240808.144430'
+    parchment {
+        minecraftVersion = project.findProperty('parchment_minecraft') ?: '1.21'
+        mappingsVersion = project.findProperty('parchment_version') ?: '2024.06.23'
+    }
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+tasks.withType(Jar).configureEach {
+    archiveBaseName = "${rootProject.ext.archivesBaseName}-common"
+}

@@ -1,0 +1,45 @@
+plugins {
+    id 'net.neoforged.moddev' version '2.0.120'
+    id 'java'
+}
+
+archivesBaseName = "${rootProject.ext.archivesBaseName}-neoforge"
+
+neoForge {
+    version = rootProject.ext.neoforgeVersion
+    parchment {
+        minecraftVersion = project.findProperty('parchment_minecraft') ?: rootProject.ext.minecraftVersion
+        mappingsVersion = project.findProperty('parchment_version') ?: '2024.06.23'
+    }
+    runs {
+        client { client() }
+        server { server() }
+    }
+    mods {
+        "${rootProject.ext.archivesBaseName}" {
+            sourceSet sourceSets.main
+            sourceSet project(':common').sourceSets.main
+        }
+    }
+}
+
+dependencies {
+    implementation project(':common')
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+tasks.jar.configure {
+    from(project(':common').sourceSets.main.output)
+}
+
+processResources {
+    inputs.property 'version', project.version
+    filesMatching('META-INF/neoforge.mods.toml') {
+        expand 'version': project.version
+    }
+}

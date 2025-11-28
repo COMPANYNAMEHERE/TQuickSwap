@@ -3,28 +3,35 @@ TQuickSwap — Agent Guide
 Overview
 - Purpose: Maintain two separate player profiles (Survival/Creative) and swap them via `/swap`.
 - Storage: Per-player compressed NBT under `world/tquickswap/` (e.g., `<uuid>-survival.nbt`).
-- Entrypoint: `dev.tetralights.tquickswap.TQuickSwapMod` in `src/main/java`.
+- Entrypoints:
+  - Fabric: `dev.tetralights.tquickswap.TQuickSwapMod` (`fabric/src/main/java`)
+  - NeoForge: `dev.tetralights.tquickswap.TQuickSwapNeoForge` (`neoforge/src/main/java`)
 - Command: `/swap [survival|creative]`.
 
 Versions
-- Minecraft: 1.21.8
-- Fabric Loader: 0.16.13
-- Fabric API: 0.133.4+1.21.8
+- Minecraft: 1.21.1
+- Fabric Loader: 0.16.14
+- Fabric API: 0.107.0+1.21.1
+- NeoForge: 21.1.215 (moddev-gradle 2.0.120 + neoform 1.21.1-20240808.144430)
 - Fabric Loom: 1.10.1
-- Gradle: 8.12
-- Java: JDK 21 (via toolchain in build.gradle)
+- Gradle: 8.12 (wrapper)
+- Java: JDK 21 (toolchain in each module)
 
-Build & Run
-- Build: `./gradlew clean build`
-- Dev server: `./gradlew runServer` (accept EULA in `run/eula.txt` on first run)
-- Dev client: `./gradlew runClient`
+- Build & Run
+- Fabric build: `./gradlew :fabric:build`
+- NeoForge build: `./gradlew :neoforge:build`
+- All builds (clean): `./gradlew clean build`
+- Fabric dev server/client: `./gradlew :fabric:runServer`, `./gradlew :fabric:runClient`
+- NeoForge dev server/client: `./gradlew :neoforge:runServer`, `./gradlew :neoforge:runClient`
 - Join: Connect your Fabric 1.21.8 client to `localhost:25565` and use `/swap`.
 
 Key Files
-- Mod entry: `src/main/java/dev/tetralights/tquickswap/TQuickSwapMod.java`
-- Storage: `src/main/java/dev/tetralights/tquickswap/DualStore.java`
-- Apply/Capture: `src/main/java/dev/tetralights/tquickswap/ProfileOps.java`
-- Mod metadata: `src/main/resources/fabric.mod.json`
+- Mod entry: `fabric/src/main/java/dev/tetralights/tquickswap/TQuickSwapMod.java` (Fabric)
+- Mod entry: `neoforge/src/main/java/dev/tetralights/tquickswap/TQuickSwapNeoForge.java` (NeoForge)
+- Storage / ops / helpers: `common/src/main/java/dev/tetralights/tquickswap/DualStore.java`, `.../ProfileOps.java`, `.../SwapCommands.java`, etc.
+- Shared strings: `common/src/main/resources/assets/tquickswap/lang`
+- Fabric metadata: `fabric/src/main/resources/fabric.mod.json`
+- NeoForge metadata: `neoforge/src/main/resources/META-INF/mods.toml`
 
 Data Locations
 - Profiles: `world/tquickswap/<uuid>-survival.nbt`, `...-creative.nbt`
@@ -38,12 +45,12 @@ Common Tasks
 - Verify Java 21: `./gradlew --version`
 
 Conventions
-- Mojang mappings (official) for 1.21.8 via Loom.
-- No example mod residue (com.example.* removed). If you still see `src/main/resources/assets/modid/icon.png`, it’s unused; safe to delete.
+- Mojang mappings (official) for 1.21.1 via Loom.
+- No example mod residue (com.example.* removed). If you still see `fabric/src/main/resources/assets/modid/icon.png`, it’s unused; safe to delete.
 
-Release (standalone server)
-1. Build JAR: `./gradlew build` (output in `build/libs/`)
-2. On a Fabric server (1.21.8), place TQuickSwap JAR and Fabric API in `mods/`
+Release
+1. Build the desired loader artifact (`:fabric:build` or `:neoforge:build`, JARs under `<loader>/build/libs/`).
+2. Drop that JAR plus the corresponding Fabric API or NeoForge runtime into the server’s `mods/` directory.
 
 Changelogs
 - Always add a new changelog entry for releases; do not remove old entries.
@@ -52,4 +59,5 @@ Changelogs
 
 Troubleshooting
 - Loom/Gradle mismatch: Project pins Loom 1.10.1 and Gradle 8.12.
+- NeoForge tooling: `net.neoforged.moddev` (2.0.120) requires `moddev` repository (already configured in root build script).
 - Permissions: You may need to `op` your player to use `/swap`.

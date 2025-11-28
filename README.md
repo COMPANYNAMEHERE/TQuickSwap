@@ -2,7 +2,7 @@
 
 TQuickSwap lets players maintain two separate in-game profiles (Survival and Creative) and swap between them with a command. Each profile stores inventory, ender chest, XP, health/food, potion effects, abilities, and position/world.
 
-Current version: 1.4.1 (Fabric 1.21.8)
+Current version: 1.4.1 (Fabric/NeoForge 1.21.1)
 
 ## Features
 - Dual profiles: separate Survival and Creative states
@@ -34,18 +34,40 @@ Permissions:
 - Last profile flag: `world/tquickswap/<uuid>-last.nbt`
 
 ## Compatibility
-- Minecraft: 1.21.8
-- Fabric Loader: 0.16.13
-- Fabric API: 0.133.4+1.21.8
+- Minecraft: 1.21.1
+- Fabric Loader: 0.16.14
+- Fabric API: 0.107.0+1.21.1
+- NeoForge: 21.1.215 (moddev-gradle 2.0.120)
 
 ## Build & Run
-- Build: `./gradlew clean build`
-- Dev server: `./gradlew runServer` (accept EULA in `run/eula.txt` on first run)
-- Dev client: `./gradlew runClient`
+
+The recommended way to run TQuickSwap in dev (Fabric or NeoForge) is:
+
+- `./run-loader.sh`
+
+This script:
+- Prompts you for the loader (`fabric` or `neoforge`)
+- Cleans the corresponding `run/` directory
+- Ensures a Java 21 runtime is available (downloads Temurin 21 under `/tmp/jdks` if needed)
+- Starts the appropriate `runClient` Gradle task
+
+<details>
+<summary>Manual commands (if <code>run-loader.sh</code> doesn&apos;t work)</summary>
+
+- Fabric build: `./gradlew :fabric:build`
+- NeoForge build: `./gradlew :neoforge:build`
+- All builds: `./gradlew clean build` (runs both loaders)
+- Fabric dev server: `./gradlew :fabric:runServer` (accept EULA in `run/eula.txt` on first run)
+- NeoForge dev server: `./gradlew :neoforge:runServer`
+- Fabric dev client: `./gradlew :fabric:runClient`
+- NeoForge dev client: `./gradlew :neoforge:runClient`
+
+</details>
 
 ## Troubleshooting
 - Permissions: Make sure your player is OP for `/swap config …`.
 - Mappings cache glitches: clear Gradle/Yarn caches if classes can’t be resolved.
+- Java 21 required: The helper script `run-loader.sh` ensures a Temurin JDK 21 is available under `/tmp/jdks`. If the tmp directory is cleared, rerun the script or reinstall the JDK and set `JAVA_HOME`.
 - Data reset: Delete per-player files in `world/tquickswap/` if you changed data formats during development (backup first).
 
 ## Changelog
